@@ -170,3 +170,78 @@ export async function posterFromBlob(blob: Blob): Promise<Blob | null> {
     URL.revokeObjectURL(url)
   }
 }
+
+// ---------------------------------------------------------------------------
+// Opening the camera
+// ---------------------------------------------------------------------------
+
+export interface OpenCameraResult {
+  stream: MediaStream
+  /** False when we had to fall back to video-only. Sound signals need this. */
+  hasAudio: boolean
+}
+
+/**
+ * Opens a camera, degrading rather than failing outright.
+ *
+ * Two things bite here. `facingMode: 'environment'` asks for a rear camera,
+ * which a laptop does not have. And `audio: true` makes the whole request fail
+ * if the microphone alone is unavailable — so a working camera plus a busy mic
+ * yields no camera at all.
+ *
+ * So: try the ideal setup, then a plain one, then drop audio. Only the last
+ * failure is reported, and the caller is told whether sound was lost, because
+ * a hum recorded silently is a useless dictionary entry.
+ */
+export async function openCamera(): Promise<OpenCameraResult> {
+  const attempts: Array<{ constraints: MediaStreamConstraints; audio: boolean }> = [
+    {
+      constraints: {
+        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } },
+        audio: true,
+      },
+      audio: true,
+    },
+    { constraints: { video: true, audio: true }, audio: true },
+    { constraints: { video: true, audio: false }, audio: false },
+  ]
+
+  let lastError: unknown
+  for (const attempt of attempts) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia(attempt.constraints)
+      return { stream, hasAudio: attempt.audio }
+    } catch (err) {
+      lastError = err
+      // A denied permission will not be granted by asking again with looser
+      // constraints, so stop rather than triggering three prompts.
+      if (err instanceof DOMException && err.name === 'NotAllowedError') break
+    }
+  }
+  throw lastError
+}
+
+/** Turns a getUserMedia failure into something the user can act on. */
+export function cameraErrorMessage(err: unknown): string {
+  if (!(err instanceof DOMException)) {
+    return err instanceof Error && err.message
+      ? `Could not open the camera: ${err.message}`
+      : 'Could not open the camera.'
+  }
+  switch (err.name) {
+    case 'NotAllowedError':
+      return 'Camera permission is blocked. Click the camera icon in the address bar, allow it, then reload.'
+    case 'NotFoundError':
+    case 'DevicesNotFoundError':
+      return 'No camera found on this device.'
+    case 'NotReadableError':
+    case 'TrackStartError':
+      return 'The camera is in use by another app. Close Zoom, Teams, or any other tab using it, then reload.'
+    case 'OverconstrainedError':
+      return 'This camera does not support the requested settings.'
+    case 'SecurityError':
+      return 'The camera needs a secure connection (https).'
+    default:
+      return `Could not open the camera (${err.name}).`
+  }
+}

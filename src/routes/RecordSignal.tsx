@@ -6,8 +6,10 @@ import { Field, Input, Textarea } from '@/components/ui/field'
 import { ErrorNote } from '@/components/ui/alert'
 import { createSignal } from '@/lib/db'
 import {
+  cameraErrorMessage,
   canRecord,
   MAX_CLIP_MS,
+  openCamera,
   recordClip,
   type RecordedClip,
 } from '@/lib/recorder'
@@ -40,6 +42,7 @@ export default function RecordSignal() {
     canRecord() ? null : 'This browser cannot record video. Try Chrome or Safari.'
   )
   const [saving, setSaving] = useState(false)
+  const [noAudio, setNoAudio] = useState(false)
 
   const [label, setLabel] = useState('')
   const [meaning, setMeaning] = useState('')
@@ -53,22 +56,21 @@ export default function RecordSignal() {
   useEffect(() => {
     if (!canRecord()) return
     let cancelled = false
-    navigator.mediaDevices
-      .getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 1280 } },
-        audio: true,
-      })
-      .then((stream) => {
+
+    openCamera()
+      .then(({ stream, hasAudio }) => {
         if (cancelled) {
           stream.getTracks().forEach((t) => t.stop())
           return
         }
         streamRef.current = stream
+        setNoAudio(!hasAudio)
         if (videoRef.current) videoRef.current.srcObject = stream
       })
-      .catch(() =>
-        setError('Camera access was blocked. Allow it and reload the page.')
-      )
+      .catch((err) => {
+        console.error('openCamera failed', err)
+        if (!cancelled) setError(cameraErrorMessage(err))
+      })
 
     return () => {
       cancelled = true
@@ -211,6 +213,13 @@ export default function RecordSignal() {
         <div className="mt-4">
           <ErrorNote>{error}</ErrorNote>
         </div>
+      )}
+
+      {noAudio && !error && (
+        <p className="mt-4 rounded-[var(--radius)] bg-surface-2 px-3 py-2.5 text-sm text-fg-muted">
+          No microphone available, so this clip will have no sound. Fine for a
+          movement — not for a signal that is a sound.
+        </p>
       )}
 
       <div className="mt-4 flex gap-2">
