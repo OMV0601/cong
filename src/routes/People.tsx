@@ -5,12 +5,15 @@ import { Button } from '@/components/ui/button'
 import { Field, Input } from '@/components/ui/field'
 import { ErrorNote } from '@/components/ui/alert'
 import { createPerson, listPeople } from '@/lib/db'
+import { ListSkeleton } from '@/components/ui/skeleton'
 import { useAuth } from '@/lib/auth-context'
+import { useDocumentTitle } from '@/lib/use-document-title'
 import type { Person } from '@/lib/types'
 import { errorMessage } from '@/lib/errors'
 
 export default function People() {
   const { signOut } = useAuth()
+  useDocumentTitle('Your people · Lexicon')
   const [people, setPeople] = useState<Person[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [adding, setAdding] = useState(false)
@@ -61,7 +64,7 @@ export default function People() {
       )}
 
       {people === null ? (
-        <p className="mt-10 text-sm text-fg-muted">Loading…</p>
+        <ListSkeleton className="mt-8" rows={2} />
       ) : people.length === 0 && !adding ? (
         <div className="mt-10 rounded-[var(--radius)] border border-border bg-surface p-6">
           <h2 className="font-medium">Start a lexicon</h2>

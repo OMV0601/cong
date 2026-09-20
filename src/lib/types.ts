@@ -117,3 +117,27 @@ export interface AskRequest {
   created_at: string
   answered_at: string | null
 }
+
+/**
+ * One line of the activity log, already resolved to the words a family reads
+ * rather than the ids the database stores.
+ *
+ * `grant_label` is null for an action taken by a circle member rather than a
+ * code holder, and for a code that was created without a label.
+ */
+export interface AccessLogEntry {
+  id: string
+  action: string
+  created_at: string
+  grant_label: string | null
+  signal_label: string | null
+}
+
+/** Actions the log can contain today. Anything else renders as raw text. */
+export const ACCESS_ACTIONS = [
+  'opened',
+  'asked',
+  'confirmed_match',
+  'rejected_match',
+] as const
+export type AccessAction = (typeof ACCESS_ACTIONS)[number]

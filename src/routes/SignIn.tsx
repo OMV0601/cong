@@ -1,12 +1,24 @@
 import { useState, type FormEvent } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Field, Input } from '@/components/ui/field'
 import { ErrorNote } from '@/components/ui/alert'
 import { useAuth } from '@/lib/auth-context'
+import { useDocumentTitle } from '@/lib/use-document-title'
 import { errorMessage } from '@/lib/errors'
 
 export default function SignIn() {
   const { signInWithPassword, signUp, signInAsGuest } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
+  useDocumentTitle('Sign in · Lexicon')
+
+  // Where they were headed before the session ran out, so a bookmarked person
+  // page survives signing back in.
+  const from =
+    (location.state as { from?: { pathname?: string } } | null)?.from
+      ?.pathname ?? '/app'
   const [mode, setMode] = useState<'in' | 'up'>('in')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -22,6 +34,7 @@ export default function SignIn() {
     try {
       if (mode === 'in') {
         await signInWithPassword(email, password)
+        navigate(from, { replace: true })
       } else {
         await signUp(email, password)
         setNotice('Account created. Check your email if confirmation is on.')
@@ -35,7 +48,13 @@ export default function SignIn() {
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-sm flex-col justify-center px-4 py-12">
-      <h1 className="text-3xl font-semibold tracking-tight">Lexicon</h1>
+      <Link
+        to="/"
+        className="inline-flex items-center gap-1.5 self-start text-sm text-fg-muted hover:text-fg"
+      >
+        <ArrowLeft className="size-4" aria-hidden /> What is this?
+      </Link>
+      <h1 className="mt-4 text-3xl font-semibold tracking-tight">Lexicon</h1>
       <p className="mt-2 text-sm text-fg-muted">
         Every non-speaking person has a vocabulary. It just lives in one
         person&rsquo;s head.
@@ -111,6 +130,7 @@ export default function SignIn() {
           setNotice(null)
           try {
             await signInAsGuest()
+            navigate(from, { replace: true })
           } catch (err) {
             setError(errorMessage(err, 'Guest sign-in is not enabled.'))
           } finally {

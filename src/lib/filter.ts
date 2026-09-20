@@ -49,3 +49,28 @@ export function orderForDisplay(signals: readonly Signal[]): Signal[] {
     (a, b) => rank[a.urgency] - rank[b.urgency] || a.sort_order - b.sort_order
   )
 }
+
+/**
+ * The instant half of search.
+ *
+ * Postgres does the real matching — it stems, so "rocking" finds "rocks when
+ * anxious" — but a round trip on hospital wifi is long enough that a search box
+ * relying on it alone feels broken while you type. So the already-loaded
+ * signals are filtered here on every keystroke, and the server's better answer
+ * replaces this one when it lands.
+ *
+ * Deliberately dumb: case-insensitive substring over the words a family wrote.
+ * Anything cleverer would disagree with the server in ways a user would read as
+ * flicker.
+ */
+export function localSearch(
+  signals: readonly Signal[],
+  query: string
+): Signal[] {
+  const q = query.trim().toLowerCase()
+  if (!q) return [...signals]
+  return signals.filter(
+    (s) =>
+      s.label.toLowerCase().includes(q) || s.meaning.toLowerCase().includes(q)
+  )
+}

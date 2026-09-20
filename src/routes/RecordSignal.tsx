@@ -2,8 +2,12 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Circle, RotateCcw, Square } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Field, Input, Textarea } from '@/components/ui/field'
 import { ErrorNote } from '@/components/ui/alert'
+import { SignalFields } from '@/components/SignalFields'
+import {
+  EMPTY_SIGNAL_FIELDS,
+  type SignalFieldValues,
+} from '@/lib/signal-fields'
 import { createSignal } from '@/lib/db'
 import {
   cameraErrorMessage,
@@ -13,16 +17,7 @@ import {
   recordClip,
   type RecordedClip,
 } from '@/lib/recorder'
-import {
-  BODY_REGIONS,
-  BODY_REGION_LABELS,
-  FLACC_CATEGORIES,
-  FLACC_LABELS,
-  type BodyRegion,
-  type FlaccCategory,
-  type Urgency,
-} from '@/lib/types'
-import { cn } from '@/lib/utils'
+import { useDocumentTitle } from '@/lib/use-document-title'
 import { errorMessage } from '@/lib/errors'
 
 type Stage = 'ready' | 'recording' | 'review'
@@ -44,12 +39,9 @@ export default function RecordSignal() {
   const [saving, setSaving] = useState(false)
   const [noAudio, setNoAudio] = useState(false)
 
-  const [label, setLabel] = useState('')
-  const [meaning, setMeaning] = useState('')
-  const [bodyRegion, setBodyRegion] = useState<BodyRegion>('whole_body')
-  const [isSound, setIsSound] = useState(false)
-  const [urgency, setUrgency] = useState<Urgency>('routine')
-  const [flacc, setFlacc] = useState<FlaccCategory | null>(null)
+  const [fields, setFields] = useState<SignalFieldValues>(EMPTY_SIGNAL_FIELDS)
+
+  useDocumentTitle('Record a signal · Lexicon')
 
   // One camera permission prompt for the whole session. A parent capturing a
   // dozen signals should not be re-prompted on every take.
@@ -150,12 +142,12 @@ export default function RecordSignal() {
     try {
       await createSignal({
         personId: id,
-        label,
-        meaning,
-        bodyRegion,
-        isSound,
-        urgency,
-        flaccCategory: flacc,
+        label: fields.label,
+        meaning: fields.meaning,
+        bodyRegion: fields.bodyRegion,
+        isSound: fields.isSound,
+        urgency: fields.urgency,
+        flaccCategory: fields.flaccCategory,
         clip,
       })
       navigate(`/person/${id}`)
@@ -253,134 +245,13 @@ export default function RecordSignal() {
             void save()
           }}
         >
-          <Field
-            label="What do you call this?"
-            hint="A short name you'd recognise. 'Pain hum', 'Hand flick'."
-          >
-            {(p) => (
-              <Input
-                {...p}
-                required
-                maxLength={60}
-                value={label}
-                onChange={(e) => setLabel(e.target.value)}
-              />
-            )}
-          </Field>
-
-          <Field
-            label="What does it mean?"
-            hint="Write it for someone who has never met them. What should they do?"
-          >
-            {(p) => (
-              <Textarea
-                {...p}
-                rows={3}
-                value={meaning}
-                onChange={(e) => setMeaning(e.target.value)}
-                placeholder="Not the same as his anxious hum. Check stomach and ears first."
-              />
-            )}
-          </Field>
-
-          <fieldset>
-            <legend className="text-sm font-medium">
-              Where does it happen?
-            </legend>
-            <p className="mt-0.5 text-xs text-fg-muted">
-              This is how a stranger narrows things down when they can&rsquo;t
-              describe what they&rsquo;re seeing.
-            </p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {BODY_REGIONS.map((region) => (
-                <button
-                  key={region}
-                  type="button"
-                  onClick={() => setBodyRegion(region)}
-                  aria-pressed={bodyRegion === region}
-                  className={cn(
-                    'rounded-full border px-3.5 py-2 text-sm',
-                    bodyRegion === region
-                      ? 'border-accent bg-accent-soft text-fg'
-                      : 'border-border bg-surface hover:bg-surface-2'
-                  )}
-                >
-                  {BODY_REGION_LABELS[region]}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-
-          <label className="flex items-start gap-2.5">
-            <input
-              type="checkbox"
-              checked={isSound}
-              onChange={(e) => setIsSound(e.target.checked)}
-              className="mt-1 size-4"
-            />
-            <span>
-              <span className="block text-sm font-medium">
-                This is a sound
-              </span>
-              <span className="block text-xs text-fg-muted">
-                Tick this as well as a body region — someone can hum while
-                rocking.
-              </span>
-            </span>
-          </label>
-
-          <fieldset>
-            <legend className="text-sm font-medium">How urgent is it?</legend>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {(['routine', 'attention', 'urgent'] as const).map((level) => (
-                <button
-                  key={level}
-                  type="button"
-                  onClick={() => setUrgency(level)}
-                  aria-pressed={urgency === level}
-                  className={cn(
-                    'rounded-full border px-3.5 py-2 text-sm capitalize',
-                    urgency === level
-                      ? level === 'urgent'
-                        ? 'border-urgent bg-urgent-soft text-urgent'
-                        : 'border-accent bg-accent-soft text-fg'
-                      : 'border-border bg-surface hover:bg-surface-2'
-                  )}
-                >
-                  {level}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-
-          <Field
-            label="Pain scale category (optional)"
-            hint="FLACC is the scale clinicians already use for people who can't self-report. Tagging here means a nurse sees it in words they know."
-          >
-            {(p) => (
-              <select
-                {...p}
-                value={flacc ?? ''}
-                onChange={(e) =>
-                  setFlacc((e.target.value || null) as FlaccCategory | null)
-                }
-                className="h-11 w-full rounded-[var(--radius)] border border-border bg-surface px-3 text-fg"
-              >
-                <option value="">Not a pain signal</option>
-                {FLACC_CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
-                    {FLACC_LABELS[c]}
-                  </option>
-                ))}
-              </select>
-            )}
-          </Field>
+          <SignalFields value={fields} onChange={setFields} showFlacc />
 
           <Button
             type="submit"
             size="lg"
             className="w-full"
-            disabled={saving || !label.trim()}
+            disabled={saving || !fields.label.trim()}
           >
             {saving ? 'Saving…' : 'Save signal'}
           </Button>

@@ -14,18 +14,25 @@ interface Row {
 }
 
 /**
- * Phase 0 status page.
+ * The troubleshooting page, at /debug.
  *
- * This is scaffolding, not product — it exists so that "is the backend
- * actually reachable?" is answered by the running app rather than by someone's
- * memory of what they configured. It gets deleted in Phase 1 once there are
- * real screens to look at.
+ * It began as Phase 0 scaffolding and earned a permanent place: every failure
+ * it reports is one that otherwise shows up as a blank grid or a
+ * "code is not valid" message with no way to tell which of six things is
+ * wrong. Deploying this involves a database, a storage bucket, two auth
+ * settings, an edge function and three environment variables, and the answer
+ * to "which one did I miss?" should come from the running app rather than
+ * someone's memory.
+ *
+ * It is deliberately NOT routed at / — a first-time visitor must never land on
+ * a developer checklist. See App.tsx.
  */
 export default function Setup() {
   const [rows, setRows] = useState<Row[]>([
     { name: 'Supabase keys present', state: 'pending', detail: '' },
     { name: 'Database reachable', state: 'pending', detail: '' },
-    { name: 'Schema migrated', state: 'pending', detail: '' },
+    { name: 'Schema migrated (0001–0007)', state: 'pending', detail: '' },
+    { name: 'Search + activity migrated (0008)', state: 'pending', detail: '' },
     { name: 'Push supported by this browser', state: 'pending', detail: '' },
     { name: 'Service worker registered', state: 'pending', detail: '' },
     { name: 'VAPID public key present', state: 'pending', detail: '' },
@@ -74,6 +81,24 @@ export default function Setup() {
           set(1, 'fail', error.message)
           set(2, 'fail', 'Blocked by the error above')
         }
+
+        // 0008 adds search and the activity log. Calling it as an unauthorised
+        // caller is enough to prove it exists: a permission error means the
+        // function is there and doing its job, whereas PGRST202 means Postgres
+        // has never heard of it and the migration has not been run.
+        const probe = await supabase.rpc('search_signals_for_person', {
+          p_person_id: '00000000-0000-0000-0000-000000000000',
+          p_query: '',
+        })
+        if (
+          probe.error &&
+          (probe.error.code === 'PGRST202' ||
+            probe.error.message.includes('Could not find the function'))
+        ) {
+          set(3, 'fail', 'Run supabase/migrations/0008_search_and_activity.sql')
+        } else {
+          set(3, 'pass', 'search_signals_for_person present')
+        }
       }
 
       const pushOk =
@@ -81,7 +106,7 @@ export default function Setup() {
         'PushManager' in window &&
         'Notification' in window
       set(
-        3,
+        4,
         pushOk ? 'pass' : 'fail',
         pushOk ? 'Push API available' : 'This browser cannot receive push'
       )
@@ -89,16 +114,16 @@ export default function Setup() {
       if ('serviceWorker' in navigator) {
         try {
           const reg = await navigator.serviceWorker.register('/sw.js')
-          set(4, 'pass', `Scope ${reg.scope}`)
+          set(5, 'pass', `Scope ${reg.scope}`)
         } catch (e) {
-          set(4, 'fail', errorMessage(e, 'Registration failed'))
+          set(5, 'fail', errorMessage(e, 'Registration failed'))
         }
       } else {
-        set(4, 'fail', 'No service worker support')
+        set(5, 'fail', 'No service worker support')
       }
 
       set(
-        5,
+        6,
         env.vapidPublicKey ? 'pass' : 'fail',
         env.vapidPublicKey
           ? `${env.vapidPublicKey.slice(0, 12)}…`
@@ -117,12 +142,13 @@ export default function Setup() {
   return (
     <main className="mx-auto min-h-dvh w-full max-w-2xl px-4 py-12">
       <p className="text-sm font-medium tracking-wide text-accent uppercase">
-        Phase 0
+        Diagnostics
       </p>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">Lexicon</h1>
       <p className="mt-3 max-w-prose text-fg-muted">
-        Every non-speaking person has a vocabulary. It just lives in one
-        person&rsquo;s head. This page checks that the plumbing is connected.
+        Checks every piece of plumbing this app needs and names whichever one
+        is missing. Nothing here is user-facing — if you arrived by accident,
+        the app itself is at <a href="/" className="underline underline-offset-4">the front page</a>.
       </p>
 
       <ul className="mt-10 divide-y divide-border overflow-hidden rounded-[var(--radius)] border border-border bg-surface">
@@ -161,7 +187,7 @@ export default function Setup() {
         )}
       >
         {allPass
-          ? 'All checks passing — ready for Phase 1.'
+          ? 'Everything is connected.'
           : 'Fix anything marked above, then reload.'}
       </p>
     </main>

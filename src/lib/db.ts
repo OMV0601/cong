@@ -7,6 +7,7 @@ import {
 } from './recorder'
 import type {
   AccessGrant,
+  AccessLogEntry,
   AskRequest,
   BodyRegion,
   FlaccCategory,
@@ -178,11 +179,39 @@ export async function deleteSignal(signal: Signal): Promise<void> {
 // ---------------------------------------------------------------------------
 
 /**
+ * Retries a failing call a few times with growing gaps.
+ *
+ * Only for reads that are safe to repeat. Hospital wifi drops a request now
+ * and then, and one dropped request here costs a grid of blank tiles at the
+ * exact moment someone needed to look something up.
+ */
+async function withRetry<T>(fn: () => Promise<T>, attempts = 3): Promise<T> {
+  let lastError: unknown
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    try {
+      return await fn()
+    } catch (err) {
+      lastError = err
+      if (attempt < attempts - 1) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, 300 * 2 ** attempt)
+        )
+      }
+    }
+  }
+  throw lastError
+}
+
+/**
  * Signed URLs for a batch of paths, keyed by path.
  *
  * The bucket is private, so nothing renders without these. One call for the
  * whole grid rather than one per tile — Layer 1 shows every clip at once and
  * a request per tile would be visibly slow on hospital wifi.
+ *
+ * Retried, because this one call is load-bearing for the entire screen: if it
+ * fails there is no grid at all, just squares. Signing is a read and creates
+ * nothing, so repeating it is free.
  */
 export async function signPaths(
   paths: string[],
@@ -192,10 +221,13 @@ export async function signPaths(
   const unique = [...new Set(paths.filter(Boolean))]
   if (unique.length === 0) return map
 
-  const { data, error } = await client()
-    .storage.from(SIGNALS_BUCKET)
-    .createSignedUrls(unique, expiresInSeconds)
-  if (error) throw error
+  const data = await withRetry(async () => {
+    const res = await client()
+      .storage.from(SIGNALS_BUCKET)
+      .createSignedUrls(unique, expiresInSeconds)
+    if (res.error) throw res.error
+    return res.data
+  })
 
   for (const entry of data ?? []) {
     if (entry.signedUrl && entry.path) map.set(entry.path, entry.signedUrl)
@@ -280,6 +312,26 @@ export async function claimGrant(token: string): Promise<ClaimedGrant> {
 export async function signalsForPerson(personId: string): Promise<Signal[]> {
   const { data, error } = await client().rpc('signals_for_person', {
     p_person_id: personId,
+  })
+  if (error) throw error
+  return (data ?? []) as Signal[]
+}
+
+/**
+ * Full-text search, ranked, for either kind of reader.
+ *
+ * Postgres does the matching rather than the browser because it stems: someone
+ * typing "rocking" should find a signal labelled "rocks when anxious". The
+ * caller still filters locally while this is in flight — see localSearch() in
+ * filter.ts — so a slow connection never makes the box feel broken.
+ */
+export async function searchSignals(
+  personId: string,
+  query: string
+): Promise<Signal[]> {
+  const { data, error } = await client().rpc('search_signals_for_person', {
+    p_person_id: personId,
+    p_query: query,
   })
   if (error) throw error
   return (data ?? []) as Signal[]
@@ -410,6 +462,29 @@ export async function confirmMatch(
     p_confirmed: confirmed,
   })
   if (error) console.error('confirmMatch failed', error)
+}
+
+// ---------------------------------------------------------------------------
+// Activity
+// ---------------------------------------------------------------------------
+
+/**
+ * Who looked, and what they did with it.
+ *
+ * The other half of being able to revoke a code: a family can see what was
+ * done while it was live. Nobody should have to take a sharing feature on
+ * faith.
+ */
+export async function accessLogForPerson(
+  personId: string,
+  limit = 200
+): Promise<AccessLogEntry[]> {
+  const { data, error } = await client().rpc('access_log_for_person', {
+    p_person_id: personId,
+    p_limit: limit,
+  })
+  if (error) throw error
+  return (data ?? []) as AccessLogEntry[]
 }
 
 /** Turns an answered Ask into a permanent entry in the lexicon. */

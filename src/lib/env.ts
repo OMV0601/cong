@@ -14,4 +14,11 @@ export const env = {
   supabaseUrl: url ?? '',
   supabaseAnonKey: anonKey ?? '',
   vapidPublicKey: (import.meta.env.VITE_VAPID_PUBLIC_KEY as string) ?? '',
+  /**
+   * A live share code for the seeded demo person, so the landing page can
+   * offer the stranger's view without an account. Optional: unset, the page
+   * simply does not offer a tour, which beats a button that leads to an
+   * expired grant.
+   */
+  demoCode: (import.meta.env.VITE_DEMO_CODE as string) ?? '',
 }

@@ -1,4 +1,5 @@
-import { Volume2, VolumeX } from 'lucide-react'
+import { Trash2, Volume2, VolumeX } from 'lucide-react'
+import { ClipVideo } from '@/components/ClipVideo'
 import { cn } from '@/lib/utils'
 import { BODY_REGION_LABELS, type Signal } from '@/lib/types'
 
@@ -13,6 +14,11 @@ import { BODY_REGION_LABELS, type Signal } from '@/lib/types'
  * Whether this tile is the one with sound on is owned by the parent, so that
  * unmuting one mutes the rest. Thirty clips talking at once is not a grid
  * anyone can read.
+ *
+ * Deleting is opt-in via `onDelete` rather than a permission check inside the
+ * tile: the stranger view renders this same component, and a destructive
+ * control that only *sometimes* appears is one prop away from appearing where
+ * it must not.
  */
 export function SignalTile({
   signal,
@@ -22,6 +28,7 @@ export function SignalTile({
   selected = false,
   audioOn = false,
   onToggleAudio,
+  onDelete,
 }: {
   signal: Signal
   videoUrl?: string
@@ -30,6 +37,7 @@ export function SignalTile({
   selected?: boolean
   audioOn?: boolean
   onToggleAudio?: (signal: Signal) => void
+  onDelete?: (signal: Signal) => void
 }) {
   return (
     <div
@@ -40,28 +48,30 @@ export function SignalTile({
       )}
     >
       <div className="relative aspect-square w-full bg-surface-2">
-        {videoUrl ? (
-          <video
-            src={videoUrl}
-            poster={posterUrl}
-            // All three are required for the grid to animate on mobile.
-            // Without playsInline, iOS takes every tile fullscreen on play.
-            muted={!audioOn}
-            loop
-            autoPlay
-            playsInline
-            preload="metadata"
-            className="size-full object-cover"
-            aria-hidden
-          />
-        ) : (
-          <div className="size-full animate-pulse bg-surface-2" aria-hidden />
-        )}
+        <ClipVideo
+          src={videoUrl}
+          poster={posterUrl}
+          label={signal.label}
+          meaning={signal.meaning}
+          muted={!audioOn}
+          className="size-full object-cover"
+        />
 
         {signal.urgency === 'urgent' && (
           <span className="absolute top-2 left-2 rounded-full bg-urgent px-2 py-0.5 text-xs font-medium text-urgent-fg">
             Urgent
           </span>
+        )}
+
+        {onDelete && (
+          <button
+            type="button"
+            onClick={() => onDelete(signal)}
+            className="absolute top-1 right-1 z-20 grid size-11 place-items-center rounded-full bg-surface/90 text-fg-muted hover:bg-urgent-soft hover:text-urgent"
+          >
+            <Trash2 className="size-4" aria-hidden />
+            <span className="sr-only">Delete {signal.label}</span>
+          </button>
         )}
 
         {onToggleAudio && videoUrl && (

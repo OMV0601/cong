@@ -15,10 +15,14 @@ import { AskPanel } from '@/components/AskPanel'
 import { ConfirmPanel } from '@/components/ConfirmPanel'
 import { Button } from '@/components/ui/button'
 import { SignalTile } from '@/components/SignalTile'
+import { SearchBox } from '@/components/SearchBox'
 import { ErrorNote } from '@/components/ui/alert'
+import { TileGridSkeleton } from '@/components/ui/skeleton'
 import { getSupabase } from '@/lib/supabase'
 import { claimGrant, signalsForPerson, signPaths } from '@/lib/db'
 import { availableRegions, filterSignals, orderForDisplay } from '@/lib/filter'
+import { useSignalSearch } from '@/lib/use-signal-search'
+import { useDocumentTitle } from '@/lib/use-document-title'
 import { errorMessage } from '@/lib/errors'
 import { BODY_REGION_LABELS, type BodyRegion, type Signal } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -107,9 +111,23 @@ export default function StrangerView() {
   }, [open])
 
   const all = signals ?? []
+  const {
+    query,
+    setQuery,
+    results,
+    searching,
+    active: searchActive,
+  } = useSignalSearch(personId ?? '', all)
+
   const regions = availableRegions(all, soundOnly)
-  const shown = orderForDisplay(filterSignals(all, { region, soundOnly }))
-  const filtering = region !== null || soundOnly
+  // Search narrows first, then the Point filters narrow within it, so the two
+  // never contradict each other on screen.
+  const shown = orderForDisplay(filterSignals(results, { region, soundOnly }))
+  const filtering = region !== null || soundOnly || searchActive
+
+  useDocumentTitle(
+    personName ? `How ${personName} communicates · Lexicon` : 'Lexicon'
+  )
 
   if (error) {
     return (
@@ -124,10 +142,11 @@ export default function StrangerView() {
 
   if (signals === null) {
     return (
-      <main className="grid min-h-dvh place-items-center px-4">
+      <main className="mx-auto w-full max-w-3xl px-4 py-6">
         <p className="flex items-center gap-2 text-sm text-fg-muted">
           <Loader2 className="size-4 animate-spin" aria-hidden /> Opening…
         </p>
+        <TileGridSkeleton className="mt-6" />
       </main>
     )
   }
@@ -218,6 +237,7 @@ export default function StrangerView() {
             onClick={() => {
               setRegion(null)
               setSoundOnly(false)
+              setQuery('')
             }}
             className="inline-flex items-center gap-1.5 rounded-full px-3 py-2.5 text-sm text-fg-muted underline underline-offset-4 hover:text-fg"
           >
@@ -225,6 +245,20 @@ export default function StrangerView() {
           </button>
         )}
       </nav>
+
+      {/* Below Look and Point, deliberately. Someone who could name what they
+          are seeing would not need this app — but a long lexicon stops being
+          scannable, and a returning aide often does know the word. */}
+      {all.length > 4 && (
+        <div className="mt-4">
+          <SearchBox
+            value={query}
+            onChange={setQuery}
+            searching={searching}
+            placeholder="Or search, if you know the word"
+          />
+        </div>
+      )}
 
       {confirmed && (
         <p
@@ -248,7 +282,7 @@ export default function StrangerView() {
           <h2 className="font-medium">Nothing recorded like that</h2>
           <p className="mt-1.5 max-w-prose text-sm text-fg-muted">
             {filtering
-              ? 'Try clearing the filter and looking through everything.'
+              ? 'Try clearing the filter and looking through everything. If it really is not here, send them the clip instead — that is what the button below is for.'
               : `Nobody has recorded any signals for ${personName} yet.`}
           </p>
         </div>
