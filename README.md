@@ -178,6 +178,47 @@ status board that checks every piece of plumbing and names what's missing.
 
 ---
 
+## Testing the security model
+
+The RLS policies in `supabase/migrations/` **are** the security model.
+Everything else is convenience on top: the stranger's entire API surface is a
+handful of `security definer` functions, and if one of them leaks, a family's
+private medical vocabulary leaks with it.
+
+```bash
+SEED_EMAIL=you@example.com SEED_PASSWORD=... npm run test:rls
+```
+
+It runs with **no service role key and no privileged access at all** — just the
+publishable key that already ships inside the JS bundle. It is a hostile client
+holding exactly what an attacker would hold, and it asserts the doors are shut:
+
+| | What it proves |
+|---|---|
+| 1 | A caller with no session reads **zero rows** from every table |
+| 2 | A signed-in stranger **with no grant** reads nothing, and every stranger-facing RPC refuses them |
+| 3 | A grant for person A returns nothing for person B — rows or clips |
+| 4 | One stranger cannot read another stranger's Ask clip, though the family can, and a grant holder cannot write outside `<person>/asks/` |
+| 5 | **Revoking kills a session that was already issued** — not just future claims |
+| 6 | An expired code behaves identically to a revoked one |
+| 7 | A circle member can still do all of it for their own person |
+| 8 | A non-member cannot create or revoke codes for someone else's person |
+
+Case 5 is the one worth understanding. When a stranger claims a code they get a
+`grant_sessions` row, and that row does not disappear when the code is revoked.
+What stops them is that `has_grant_for()` re-checks the parent grant on every
+single call rather than trusting the session it already handed out. A family
+tapping **Revoke** expects the screen in the nurse's hand to go dead
+immediately, and this is the test that says it does.
+
+It creates two throwaway people, tries every crossing between them, and deletes
+everything at the end. Safe against the project you demo from; use a scratch
+project if you have one.
+
+A failure here is a real leak, not a flaky test.
+
+---
+
 ## Checking accessibility
 
 Lexicon is an accessibility product. If the app itself is not accessible,

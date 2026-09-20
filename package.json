@@ -13,7 +13,8 @@
     "vapid": "node scripts/generate-vapid.mjs",
     "seed:demo": "node scripts/seed-demo.mjs",
     "fixtures": "node scripts/make-fixtures.mjs",
-    "audit:ui": "node scripts/audit-ui.mjs"
+    "audit:ui": "node scripts/audit-ui.mjs",
+    "test:rls": "node scripts/test-rls.mjs"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.1.2",
