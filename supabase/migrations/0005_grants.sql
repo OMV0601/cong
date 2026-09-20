@@ -194,7 +194,11 @@ begin
   insert into access_grants (person_id, token, label, expires_at, created_by)
   values (
     p_person_id,
-    encode(gen_random_bytes(16), 'hex'),
+    -- gen_random_uuid() is Postgres core. gen_random_bytes() would mean
+    -- pgcrypto, which Supabase installs into the `extensions` schema and this
+    -- function's deliberately narrow search_path cannot see.
+    replace(gen_random_uuid()::text, '-', '')
+      || replace(gen_random_uuid()::text, '-', ''),
     coalesce(left(trim(p_label), 60), ''),
     now() + make_interval(hours => p_hours),
     auth.uid()
