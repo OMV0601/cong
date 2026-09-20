@@ -242,6 +242,30 @@ Record + upload from the stranger view. DB trigger → Edge Function → Web Pus
 Parent's inbox. Answer flows back over Realtime.
 **Demo:** the full loop, two phones, under 30 seconds. **This is the video.**
 
+Also in this phase: **side-by-side confirmation.**
+
+When a stranger thinks they have found a match, they film ~3 seconds of what
+they are actually looking at. The app shows **their clip next to the family's
+clip**, and they confirm it is the same thing. The confirmation is written to
+`access_log` — *confirmed match, 3 Oct, Overlake ER.*
+
+Why this and not automatic matching:
+
+- **It does not break the one rule.** Lexicon never interprets. A model that
+  watches a child and decides "that is the pain hum" is exactly the thing this
+  product refuses to do, and the refusal is what earns a clinician's trust.
+  Trading that for a weaker claim is a bad trade.
+- **It is honest.** Few-shot matching of idiosyncratic movement, on bodies that
+  move atypically, is a research problem. It would be unreliable on camera and
+  unfalsifiable in a three-minute video.
+- **It demos better.** Two clips side by side, one labelled, is legible in a
+  single frame. An AI confidence score is not.
+- **It is nearly free.** It reuses the Ask recorder and the existing grid.
+
+The automated version belongs in "What's next" as a named future step with the
+reason it is not in v1 — a wrong pain reading is worse than no reading. Stating
+that reads as judgement rather than as a missing feature.
+
 ### Phase 4 — Trust + growth · 2 days
 **Layer 4** Honest No. Access log visible to family. FLACC/NCCPC tagging.
 Full-text search. **Promote an answered Ask into a signal.** RLS hardening.
