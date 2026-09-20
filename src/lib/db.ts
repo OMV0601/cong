@@ -102,7 +102,10 @@ export async function createSignal(input: NewSignalInput): Promise<Signal> {
       contentType: baseMimeType(input.clip.mimeType),
       upsert: false,
     })
-  if (uploadError) throw uploadError
+  if (uploadError) {
+    console.error('createSignal: clip upload failed', uploadError)
+    throw uploadError
+  }
 
   let posterPath: string | null = null
   const poster = await posterFromBlob(input.clip.blob)
@@ -141,6 +144,7 @@ export async function createSignal(input: NewSignalInput): Promise<Signal> {
     .single()
 
   if (error) {
+    console.error('createSignal: signals insert failed', error)
     // Roll back the uploads so a failed save leaves nothing behind.
     await supabase.storage
       .from(SIGNALS_BUCKET)
