@@ -3,23 +3,70 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#0f5c56" />
+
+    <title>Lexicon — a vocabulary a stranger can read</title>
+    <meta
+      name="description"
+      content="Every non-speaking person has a vocabulary. It just lives in one person's head. Lexicon makes it readable by someone who has never met them."
+    />
+
+    <!-- The theme colour differs per scheme so the browser chrome matches the
+         page instead of banding against it on a phone. -->
+    <meta name="theme-color" content="#fbfaf9" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#101413" media="(prefers-color-scheme: dark)" />
+
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/icon-192.png" sizes="192x192" type="image/png" />
+    <!-- iOS ignores the manifest for this, and on iOS installing to the Home
+         Screen is what makes Web Push work at all. -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Lexicon" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <!-- This URL gets pasted into a submission form and a group chat. Without
+         these it renders as a bare grey card. Paths are relative so they stay
+         correct on a preview deployment as well as the real domain. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Lexicon" />
+    <meta property="og:title" content="Lexicon — a vocabulary a stranger can read" />
+    <meta
+      property="og:description"
+      content="Some people can't speak. They still communicate. Lexicon lets a family record what those signals mean, so a nurse who has never met them can look one up in seconds."
+    />
+    <meta property="og:image" content="/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Lexicon. Every non-speaking person has a vocabulary. It just lives in one person's head."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Lexicon — a vocabulary a stranger can read" />
+    <meta
+      name="twitter:description"
+      content="Some people can't speak. They still communicate. Lexicon lets a family record what those signals mean, so a nurse who has never met them can look one up in seconds."
+    />
+    <meta name="twitter:image" content="/og.png" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <title>Lexicon</title>
-    <meta
-      name="description"
-      content="Every non-speaking person has a vocabulary. Lexicon makes it readable by someone who has never met them."
-    />
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <p style="font-family: system-ui, sans-serif; max-width: 34rem; margin: 3rem auto; padding: 0 1rem; line-height: 1.6">
+        Lexicon needs JavaScript, because the whole app is video: clips playing
+        in a grid, a camera recording a new one, and an answer arriving from
+        someone's phone without the page reloading. If you were given a code to
+        look someone up and cannot enable JavaScript, contact the family
+        directly rather than waiting on this page.
+      </p>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
