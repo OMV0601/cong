@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth-context'
 import { errorMessage } from '@/lib/errors'
 
 export default function SignIn() {
-  const { signInWithPassword, signUp } = useAuth()
+  const { signInWithPassword, signUp, signInAsGuest } = useAuth()
   const [mode, setMode] = useState<'in' | 'up'>('in')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -92,6 +92,38 @@ export default function SignIn() {
           ? 'No account yet? Create one'
           : 'Already have an account? Sign in'}
       </button>
+
+      <div className="mt-8 flex items-center gap-3" aria-hidden>
+        <span className="h-px flex-1 bg-border" />
+        <span className="text-xs text-fg-muted">or</span>
+        <span className="h-px flex-1 bg-border" />
+      </div>
+
+      <Button
+        type="button"
+        variant="outline"
+        size="lg"
+        className="mt-4 w-full"
+        disabled={busy}
+        onClick={async () => {
+          setBusy(true)
+          setError(null)
+          setNotice(null)
+          try {
+            await signInAsGuest()
+          } catch (err) {
+            setError(errorMessage(err, 'Guest sign-in is not enabled.'))
+          } finally {
+            setBusy(false)
+          }
+        }}
+      >
+        Continue as guest
+      </Button>
+      <p className="mt-2 text-xs text-fg-muted">
+        For trying things out. A guest account is real but temporary — clear
+        your browser data and it is gone.
+      </p>
     </main>
   )
 }

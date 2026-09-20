@@ -46,6 +46,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
       },
+      async signInAsGuest() {
+        const supabase = getSupabase()
+        if (!supabase) throw new Error('Backend not configured.')
+        const { error } = await supabase.auth.signInAnonymously()
+        if (error) throw error
+      },
       async signOut() {
         await getSupabase()?.auth.signOut()
       },

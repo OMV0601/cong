@@ -8,6 +8,8 @@ export interface AuthValue {
   loading: boolean
   signInWithPassword: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string) => Promise<void>
+  /** Anonymous sign-in. Gives a real auth.uid(), so RLS works normally. */
+  signInAsGuest: () => Promise<void>
   signOut: () => Promise<void>
 }
 

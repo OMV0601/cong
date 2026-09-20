@@ -41,42 +41,20 @@ export async function getPerson(id: string): Promise<Person | null> {
 /**
  * Creates a person and adds the creator to their circle.
  *
- * These two writes must both land: a person with an empty circle is invisible
- * even to the account that just made them, because every read policy goes
- * through circle membership. If the membership insert fails we delete the
- * person rather than leave an orphan the user can see but never open.
+ * One RPC rather than two inserts. Doing it client-side meant the person row
+ * had to be read back (INSERT ... RETURNING) before the circle membership
+ * existed — and the SELECT policy keys on circle membership, so the row could
+ * not see itself. The function does both writes in one transaction instead.
  */
 export async function createPerson(displayName: string): Promise<Person> {
-  const supabase = client()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not signed in.')
-
-  const { data: person, error } = await supabase
-    .from('people')
-    .insert({ display_name: displayName.trim(), created_by: user.id })
-    .select()
-    .single()
+  const { data, error } = await client().rpc('create_person', {
+    p_display_name: displayName.trim(),
+  })
   if (error) {
-    console.error('createPerson: people insert failed', error)
+    console.error('createPerson failed', error)
     throw error
   }
-
-  const { error: circleError } = await supabase.from('circle_members').insert({
-    person_id: person.id,
-    user_id: user.id,
-    role: 'family',
-    can_answer: true,
-  })
-
-  if (circleError) {
-    console.error('createPerson: circle_members insert failed', circleError)
-    await supabase.from('people').delete().eq('id', person.id)
-    throw circleError
-  }
-
-  return person
+  return data as Person
 }
 
 // ---------------------------------------------------------------------------
