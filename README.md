@@ -23,8 +23,8 @@ Full design and phase-by-phase plan: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.
 
 - ✅ **Phase 0** — schema, RLS, project scaffold
 - ✅ **Phase 1** — sign in, add a person, record a signal, see it in the grid
-- ⬜ **Phase 2** — QR grant + the stranger view (Layers 1–2)
-- ⬜ **Phase 3** — Ask (Layer 3), the live family channel
+- ✅ **Phase 2** — QR grant + the stranger view (Layers 1–2)
+- ⬜ **Phase 3** — Ask (Layer 3), the live family channel, side-by-side confirmation
 - ⬜ **Phase 4** — Honest No (Layer 4), access log, FLACC search
 - ⬜ **Phase 5** — polish, demo clips, submission video
 
