@@ -54,7 +54,7 @@ export default function SignIn() {
       >
         <ArrowLeft className="size-4" aria-hidden /> What is this?
       </Link>
-      <h1 className="mt-4 text-3xl font-semibold tracking-tight">Lexicon</h1>
+      <h1 className="mt-4 text-2xl font-semibold tracking-tight">Lexicon</h1>
       <p className="mt-2 text-sm text-fg-muted">
         Every non-speaking person has a vocabulary. It just lives in one
         person&rsquo;s head.

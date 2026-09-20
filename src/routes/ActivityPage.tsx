@@ -104,7 +104,7 @@ export default function ActivityPage() {
       {entries !== null && entries.length === 0 && !error && (
         <div className="mt-8 rounded-[var(--radius)] border border-border bg-surface p-6">
           <History className="size-6 text-fg-muted" aria-hidden />
-          <h2 className="mt-2 font-medium">Nothing yet</h2>
+          <h2 className="mt-2 text-base font-medium">Nothing yet</h2>
           <p className="mt-1.5 max-w-prose text-sm text-fg-muted">
             Nobody has opened a code for {person?.display_name ?? 'them'}. When
             someone does, you will see exactly who and when.

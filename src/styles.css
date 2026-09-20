@@ -69,7 +69,49 @@
   --focus: #5ec8bc;
 }
 
+/* ---------------------------------------------------------------------------
+   Type scale.
+
+   Defined here rather than left to Tailwind's defaults so there is one place
+   that decides how big anything is, with the line heights attached. Two
+   weights only: 400 for everything, 500/600 for emphasis. One family.
+
+   ROLES — use these combinations, not new ones. Consistent application is what
+   separates a designed interface from a functional one, and it is the most
+   visible "unfinished" signal when it drifts.
+
+     page title     text-2xl font-semibold tracking-tight   every route's <h1>
+     hero title     text-3xl sm:text-4xl font-semibold      landing page only
+     card title     text-base font-medium                   panel and empty-state <h2>
+     section label  text-sm font-medium                     group headings above a list
+     body           text-sm                                 default UI text
+     prose          text-base                               landing page paragraphs
+     meta           text-xs text-fg-muted                   timestamps, counts, hints
+
+   SPACING — a 4px rhythm, used as: 1.5 (6px) inside a line, 2–3 (8–12px)
+   between related elements, 4–5 (16–20px) between groups, 8 (32px) between
+   sections, 10–12 (40–48px) between major blocks. Card padding is 4 (16px),
+   or 6 (24px) for an empty state that has to carry explanatory text.
+--------------------------------------------------------------------------- */
+
 @theme inline {
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.125rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.375rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.625rem;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.625rem;
+  --text-xl: 1.3125rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 1.875rem;
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 2.25rem;
+  --text-4xl: 2.375rem;
+  --text-4xl--line-height: 2.75rem;
+
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
@@ -112,10 +154,28 @@
     outline-offset: 2px;
   }
 
-  /* Minimum touch target. Non-negotiable — see docs/ARCHITECTURE.md §9. */
+  /* Minimum touch target. Non-negotiable — see docs/ARCHITECTURE.md §9.
+     Scoped away from links that sit inside a paragraph: forcing 44px onto an
+     inline link breaks the line box it lives in, and the target that actually
+     matters is the one someone taps deliberately. */
   button,
   [role="button"],
-  a[href] {
+  a[href]:not(p a, li p a, figcaption a) {
+    min-height: 44px;
+  }
+
+  /* Inputs are targets too, and are easy to forget because they look big
+     enough in a desktop browser. */
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    min-height: 44px;
+  }
+
+  /* A checkbox at its native 13px is the smallest target in the app. The label
+     wrapping it is what a person actually taps, so give that the height and
+     keep the box itself visually unchanged. */
+  label:has(> input[type="checkbox"]) {
     min-height: 44px;
   }
 

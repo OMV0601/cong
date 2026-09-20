@@ -67,7 +67,7 @@ export default function People() {
         <ListSkeleton className="mt-8" rows={2} />
       ) : people.length === 0 && !adding ? (
         <div className="mt-10 rounded-[var(--radius)] border border-border bg-surface p-6">
-          <h2 className="font-medium">Start a lexicon</h2>
+          <h2 className="text-base font-medium">Start a lexicon</h2>
           <p className="mt-1.5 max-w-prose text-sm text-fg-muted">
             Add the person whose signals you want to record. You&rsquo;ll film
             short clips of what they do and write down what each one means.
@@ -84,7 +84,7 @@ export default function People() {
                 to={`/person/${person.id}`}
                 className="flex items-center justify-between gap-3 px-4 py-4 hover:bg-surface-2"
               >
-                <span className="font-medium">{person.display_name}</span>
+                <span className="text-base font-medium">{person.display_name}</span>
                 <ChevronRight className="size-5 text-fg-muted" aria-hidden />
               </Link>
             </li>

@@ -47,7 +47,11 @@ export function SignalTile({
         onSelect && 'hover:border-accent'
       )}
     >
-      <div className="relative aspect-square w-full bg-surface-2">
+      {/* The clip needs an edge of its own. In dark mode a clip's own dark
+          background sits within about 1.05:1 of the tile surface, so without
+          this the video has no visible boundary and the tile stops reading as
+          a video at all. */}
+      <div className="relative aspect-square w-full border-b border-border bg-surface-2">
         <ClipVideo
           src={videoUrl}
           poster={posterUrl}
@@ -101,7 +105,7 @@ export function SignalTile({
       </div>
 
       <div className="space-y-0.5 px-3 py-2.5">
-        <p className="font-medium">{signal.label}</p>
+        <p className="text-sm font-medium">{signal.label}</p>
         {signal.meaning && (
           <p className="line-clamp-2 text-sm text-fg-muted">{signal.meaning}</p>
         )}

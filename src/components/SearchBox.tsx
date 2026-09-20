@@ -13,7 +13,7 @@ export function SearchBox({
   onChange,
   searching = false,
   label = 'Search signals',
-  placeholder = 'Search by name or meaning',
+  placeholder = 'Search signals',
 }: {
   value: string
   onChange: (next: string) => void

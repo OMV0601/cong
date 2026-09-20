@@ -178,6 +178,47 @@ status board that checks every piece of plumbing and names what's missing.
 
 ---
 
+## Checking accessibility
+
+Lexicon is an accessibility product. If the app itself is not accessible,
+nothing else about it matters — and "we checked it by eye" is not a claim worth
+making to anyone who knows this domain. So the things that can be measured are
+measured, and both checks run in CI-friendly commands that fail loudly.
+
+**Colour contrast** is computed from the design tokens themselves:
+
+```bash
+npm test          # src/styles.test.ts
+```
+
+Every foreground/background pair in `src/styles.css` is checked against WCAG AA
+in **both** themes, plus a parity check that the two themes define the same
+tokens and that the `prefers-color-scheme` block matches the explicit dark
+theme. Those `/* 7.4:1 on --bg */` comments were typed by hand once; this is
+what stops them rotting when somebody nudges a hex value.
+
+**Layout and labelling** are checked in a real browser:
+
+```bash
+npm run build && npm run audit:ui
+```
+
+Loads all ten routes at 375px and 1280px, in light and dark — forty renders —
+and fails on:
+
+- any form control without an accessible name
+- any interactive target under 44x44 CSS pixels
+
+It stubs the backend rather than reaching one, so it needs no database and
+renders the same lexicon every run. Signed URLs resolve to the real clips in
+`fixtures/`, so the grid screenshots show actual moving video.
+
+Screenshots land in `.ui-audit/` (git-ignored). They are for looking at — the
+script fails on measurements, never on pixels, so it will not break because a
+shadow moved.
+
+---
+
 ## Demo data
 
 For filming, and for anyone who wants to try Lexicon without inventing a

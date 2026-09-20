@@ -172,7 +172,7 @@ export default function PersonPage() {
 
       {signals !== null && signals.length === 0 && !error && (
         <div className="mt-8 rounded-[var(--radius)] border border-border bg-surface p-6">
-          <h2 className="font-medium">No signals yet</h2>
+          <h2 className="text-base font-medium">No signals yet</h2>
           <p className="mt-1.5 max-w-prose text-sm text-fg-muted">
             Record short clips of what {person?.display_name ?? 'they'} actually
             does — a sound, a movement, a face — and write down what each one
@@ -189,7 +189,7 @@ export default function PersonPage() {
 
       {signals !== null && signals.length > 0 && shown.length === 0 && (
         <div className="mt-6 rounded-[var(--radius)] border border-border bg-surface p-6">
-          <h2 className="font-medium">Nothing matches “{query.trim()}”</h2>
+          <h2 className="text-base font-medium">Nothing matches “{query.trim()}”</h2>
           <p className="mt-1.5 text-sm text-fg-muted">
             Search looks at the name and the meaning you wrote. Clear it to see
             all {signals.length} signals.

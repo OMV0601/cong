@@ -71,7 +71,7 @@ export function AskPanel({
     const noMatch = ask.status === 'no_match'
     return (
       <section className="rounded-[var(--radius)] border border-border bg-surface p-5">
-        <h2 className="flex items-center gap-2 font-medium">
+        <h2 className="flex items-center gap-2 text-base font-medium">
           {noMatch ? (
             <HelpCircle className="size-5 text-fg-muted" aria-hidden />
           ) : (
@@ -103,7 +103,7 @@ export function AskPanel({
           className="mx-auto size-6 animate-spin text-accent"
           aria-hidden
         />
-        <h2 className="mt-3 font-medium">Sent</h2>
+        <h2 className="mt-3 text-base font-medium">Sent</h2>
         <p className="mt-1.5 text-sm text-fg-muted">
           {personName}&rsquo;s people have been notified. The answer will appear
           here on its own — you can keep working.
@@ -120,7 +120,7 @@ export function AskPanel({
     <section className="rounded-[var(--radius)] border border-border bg-surface p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="font-medium">Ask the people who know them</h2>
+          <h2 className="text-base font-medium">Ask the people who know them</h2>
           <p className="mt-1 text-sm text-fg-muted">
             Film what you are seeing. You don&rsquo;t have to describe it.
           </p>

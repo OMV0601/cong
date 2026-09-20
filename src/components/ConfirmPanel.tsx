@@ -53,7 +53,7 @@ export function ConfirmPanel({
     <section className="rounded-[var(--radius)] border border-border bg-surface p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="font-medium">Is this the same thing?</h2>
+          <h2 className="text-base font-medium">Is this the same thing?</h2>
           <p className="mt-1 text-sm text-fg-muted">
             Film what you are seeing and compare it yourself.
           </p>

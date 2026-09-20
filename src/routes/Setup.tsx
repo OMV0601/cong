@@ -144,7 +144,7 @@ export default function Setup() {
       <p className="text-sm font-medium tracking-wide text-accent uppercase">
         Diagnostics
       </p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight">Lexicon</h1>
+      <h1 className="mt-2 text-2xl font-semibold tracking-tight">Lexicon</h1>
       <p className="mt-3 max-w-prose text-fg-muted">
         Checks every piece of plumbing this app needs and names whichever one
         is missing. Nothing here is user-facing — if you arrived by accident,

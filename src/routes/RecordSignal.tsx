@@ -38,6 +38,10 @@ export default function RecordSignal() {
   )
   const [saving, setSaving] = useState(false)
   const [noAudio, setNoAudio] = useState(false)
+  // A Record button that is tappable before a camera exists does nothing at
+  // all when tapped, which reads as the app being broken rather than as the
+  // camera being unavailable — and the error above it then looks stale.
+  const [cameraReady, setCameraReady] = useState(false)
 
   const [fields, setFields] = useState<SignalFieldValues>(EMPTY_SIGNAL_FIELDS)
 
@@ -57,6 +61,7 @@ export default function RecordSignal() {
         }
         streamRef.current = stream
         setNoAudio(!hasAudio)
+        setCameraReady(true)
         if (videoRef.current) videoRef.current.srcObject = stream
       })
       .catch((err) => {
@@ -216,8 +221,14 @@ export default function RecordSignal() {
 
       <div className="mt-4 flex gap-2">
         {stage === 'ready' && (
-          <Button size="lg" className="flex-1" onClick={start}>
-            <Circle aria-hidden /> Record
+          <Button
+            size="lg"
+            className="flex-1"
+            disabled={!cameraReady}
+            onClick={start}
+          >
+            <Circle aria-hidden />{' '}
+            {cameraReady ? 'Record' : 'Waiting for the camera…'}
           </Button>
         )}
         {stage === 'recording' && (

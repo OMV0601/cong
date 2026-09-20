@@ -184,7 +184,7 @@ export default function StrangerView() {
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-6">
       <header>
-        <h1 className="text-xl font-semibold tracking-tight">
+        <h1 className="text-2xl font-semibold tracking-tight">
           How {personName} communicates
         </h1>
         <p className="mt-1 text-sm text-fg-muted">
@@ -264,7 +264,7 @@ export default function StrangerView() {
             value={query}
             onChange={setQuery}
             searching={searching}
-            placeholder="Or search, if you know the word"
+            placeholder="Or search a word"
           />
         </div>
       )}
@@ -288,7 +288,7 @@ export default function StrangerView() {
 
       {shown.length === 0 ? (
         <div className="mt-6 rounded-[var(--radius)] border border-border bg-surface p-6">
-          <h2 className="font-medium">Nothing recorded like that</h2>
+          <h2 className="text-base font-medium">Nothing recorded like that</h2>
           <p className="mt-1.5 max-w-prose text-sm text-fg-muted">
             {filtering
               ? 'Try clearing the filter and looking through everything. If it really is not here, send them the clip instead — that is what the button below is for.'
@@ -318,7 +318,7 @@ export default function StrangerView() {
       )}
 
       <div className="mt-8 rounded-[var(--radius)] border border-border bg-surface p-4">
-        <h2 className="flex items-center gap-2 text-sm font-medium">
+        <h2 className="flex items-center gap-2 text-base font-medium">
           <HelpCircle className="size-4 text-fg-muted" aria-hidden />
           None of these match?
         </h2>

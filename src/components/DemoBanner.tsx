@@ -17,10 +17,10 @@ export function DemoBanner({ name }: { name?: string }) {
     <div className="flex items-start gap-2.5 rounded-[var(--radius)] border border-border bg-surface-2 px-3.5 py-3 text-sm">
       <FlaskConical className="mt-0.5 size-4 shrink-0 text-fg-muted" aria-hidden />
       <p className="text-fg-muted">
-        <strong className="font-medium text-fg">This is sample data.</strong>{' '}
+        <strong className="font-medium text-fg">Sample data.</strong>{' '}
         {name ?? 'This person'} is not a real person, and the clips are abstract
-        animations rather than footage of anybody. A real lexicon holds short
-        videos of someone&rsquo;s actual signals, recorded by their family.
+        animations — a real lexicon holds video of someone&rsquo;s actual
+        signals.
       </p>
     </div>
   )

@@ -196,7 +196,7 @@ export default function Inbox() {
       ) : pending.length === 0 && past.length === 0 ? (
         <div className="mt-8 rounded-[var(--radius)] border border-border bg-surface p-6">
           <InboxIcon className="size-6 text-fg-muted" aria-hidden />
-          <h2 className="mt-2 font-medium">Nothing waiting</h2>
+          <h2 className="mt-2 text-base font-medium">Nothing waiting</h2>
           <p className="mt-1.5 max-w-prose text-sm text-fg-muted">
             When someone with a code can&rsquo;t work out what they&rsquo;re
             seeing, their question lands here — with the clip they filmed, so

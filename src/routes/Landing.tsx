@@ -129,7 +129,7 @@ export default function Landing() {
                   <span className="grid size-9 shrink-0 place-items-center rounded-full bg-accent-soft">
                     <layer.icon className="size-4 text-accent" aria-hidden />
                   </span>
-                  <h3 className="font-medium">
+                  <h3 className="text-base font-medium">
                     <span className="text-fg-muted">{i + 1}.</span> {layer.name}
                   </h3>
                 </div>
