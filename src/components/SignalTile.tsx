@@ -1,4 +1,4 @@
-import { Volume2 } from 'lucide-react'
+import { Volume2, VolumeX } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { BODY_REGION_LABELS, type Signal } from '@/lib/types'
 
@@ -7,7 +7,12 @@ import { BODY_REGION_LABELS, type Signal } from '@/lib/types'
  *
  * The clip is the product — the chrome around it stays quiet. Every tile
  * autoplays muted and looping so a stranger scanning the grid sees movement
- * rather than a wall of play buttons they have to tap one at a time.
+ * rather than a wall of play buttons they have to tap one at a time. Browsers
+ * only permit autoplay while muted, so audio is opt-in per tile.
+ *
+ * Whether this tile is the one with sound on is owned by the parent, so that
+ * unmuting one mutes the rest. Thirty clips talking at once is not a grid
+ * anyone can read.
  */
 export function SignalTile({
   signal,
@@ -15,26 +20,23 @@ export function SignalTile({
   posterUrl,
   onSelect,
   selected = false,
+  audioOn = false,
+  onToggleAudio,
 }: {
   signal: Signal
   videoUrl?: string
   posterUrl?: string
   onSelect?: (signal: Signal) => void
   selected?: boolean
+  audioOn?: boolean
+  onToggleAudio?: (signal: Signal) => void
 }) {
-  const interactive = Boolean(onSelect)
-  const Tag = interactive ? 'button' : 'div'
-
   return (
-    <Tag
-      {...(interactive
-        ? { type: 'button' as const, onClick: () => onSelect?.(signal) }
-        : {})}
-      aria-pressed={interactive ? selected : undefined}
+    <div
       className={cn(
-        'group block w-full overflow-hidden rounded-[var(--radius)] border bg-surface text-left',
+        'relative overflow-hidden rounded-[var(--radius)] border bg-surface',
         selected ? 'border-accent ring-2 ring-accent' : 'border-border',
-        interactive && 'hover:border-accent'
+        onSelect && 'hover:border-accent'
       )}
     >
       <div className="relative aspect-square w-full bg-surface-2">
@@ -44,7 +46,7 @@ export function SignalTile({
             poster={posterUrl}
             // All three are required for the grid to animate on mobile.
             // Without playsInline, iOS takes every tile fullscreen on play.
-            muted
+            muted={!audioOn}
             loop
             autoPlay
             playsInline
@@ -61,14 +63,30 @@ export function SignalTile({
             Urgent
           </span>
         )}
-        {signal.is_sound && (
-          <span
-            className="absolute right-2 bottom-2 rounded-full bg-surface/90 p-1.5"
-            title="This is a sound"
+
+        {onToggleAudio && videoUrl && (
+          <button
+            type="button"
+            onClick={() => onToggleAudio(signal)}
+            aria-pressed={audioOn}
+            className={cn(
+              'absolute right-2 bottom-2 z-20 grid size-11 place-items-center rounded-full',
+              audioOn
+                ? 'bg-accent text-accent-fg'
+                : 'bg-surface/90 text-fg hover:bg-surface'
+            )}
           >
-            <Volume2 className="size-4" aria-hidden />
-            <span className="sr-only">This signal is a sound</span>
-          </span>
+            {audioOn ? (
+              <Volume2 className="size-5" aria-hidden />
+            ) : (
+              <VolumeX className="size-5" aria-hidden />
+            )}
+            <span className="sr-only">
+              {audioOn
+                ? `Mute ${signal.label}`
+                : `Play sound for ${signal.label}`}
+            </span>
+          </button>
         )}
       </div>
 
@@ -78,9 +96,24 @@ export function SignalTile({
           <p className="line-clamp-2 text-sm text-fg-muted">{signal.meaning}</p>
         )}
         <p className="text-xs text-fg-muted">
+          {signal.is_sound && 'Sound · '}
           {BODY_REGION_LABELS[signal.body_region]}
         </p>
       </div>
-    </Tag>
+
+      {/* Sibling of the audio button rather than its parent — a button inside
+          a button is invalid and breaks keyboard navigation. */}
+      {onSelect && (
+        <button
+          type="button"
+          onClick={() => onSelect(signal)}
+          aria-pressed={selected}
+          className="absolute inset-0 z-10"
+        >
+          <span className="sr-only">{signal.label}</span>
+        </button>
+      )}
+
+    </div>
   )
 }

@@ -15,6 +15,9 @@ export default function PersonPage() {
   const [signals, setSignals] = useState<Signal[] | null>(null)
   const [urls, setUrls] = useState<Map<string, string>>(new Map())
   const [error, setError] = useState<string | null>(null)
+  // Only one tile may have sound on. A grid of clips all talking at once is
+  // not something anyone can read.
+  const [audioOnId, setAudioOnId] = useState<string | null>(null)
 
   const load = useCallback(
     async (isStale: () => boolean) => {
@@ -109,6 +112,10 @@ export default function PersonPage() {
                   signal.poster_path
                     ? urls.get(signal.poster_path)
                     : undefined
+                }
+                audioOn={audioOnId === signal.id}
+                onToggleAudio={(s) =>
+                  setAudioOnId((current) => (current === s.id ? null : s.id))
                 }
               />
             </li>
