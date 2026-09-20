@@ -17,7 +17,16 @@ moment** — or, when nothing matches, reach the family live.
 **Lexicon never interprets. It only retrieves.** No model decides what a signal
 means; the human confirms against the person in front of them.
 
-Full design: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+Full design and phase-by-phase plan: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+
+## Status
+
+- ✅ **Phase 0** — schema, RLS, project scaffold
+- ✅ **Phase 1** — sign in, add a person, record a signal, see it in the grid
+- ⬜ **Phase 2** — QR grant + the stranger view (Layers 1–2)
+- ⬜ **Phase 3** — Ask (Layer 3), the live family channel
+- ⬜ **Phase 4** — Honest No (Layer 4), access log, FLACC search
+- ⬜ **Phase 5** — polish, demo clips, submission video
 
 ---
 
@@ -29,8 +38,9 @@ cp .env.example .env.local   # then fill in your Supabase values
 npm run dev
 ```
 
-Open <http://localhost:5173>. The home page is a Phase 0 status board that
-checks every piece of plumbing and tells you what's missing.
+Open <http://localhost:5173>. If the backend isn't configured yet, the home
+page is a status board that checks every piece of plumbing and tells you
+what's missing — once everything is green you'll land on sign in instead.
 
 ### Backend setup
 
@@ -40,6 +50,11 @@ checks every piece of plumbing and tells you what's missing.
    - `supabase/migrations/0002_rls.sql`
 3. Storage → create a bucket named `signals`, **not public**.
 4. Put your project URL and **publishable (anon)** key in `.env.local`.
+5. Same three values (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`,
+   `VITE_VAPID_PUBLIC_KEY`) also need to be set in **Vercel → Settings →
+   Environment Variables** for the deployed site — a `.env.local` file only
+   affects your own machine. Vite bakes these in at build time, so a
+   **Redeploy** is required after adding or changing any of them.
 
 The publishable key is meant to be public — it ships inside the bundle. Row-Level
 Security is what protects the data. The **secret / service_role key must never
