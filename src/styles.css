@@ -1,0 +1,132 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Lexicon design tokens.
+
+   Calm and clinical. This sits next to a hospital bed, so it should read as a
+   well-made medical tool, not a startup landing page.
+
+   Rules:
+   - One accent (teal). Everything else is neutral.
+   - Red is reserved EXCLUSIVELY for urgency. Never decoration.
+   - Every pairing below meets WCAG AA (4.5:1 body, 3:1 large/UI).
+--------------------------------------------------------------------------- */
+
+:root {
+  --bg: #fbfaf9;
+  --surface: #ffffff;
+  --surface-2: #f1efed;
+  --border: #ddd9d5;
+  --fg: #1a1d1c;          /* 15.9:1 on --bg */
+  --fg-muted: #565d5b;    /*  6.4:1 on --bg */
+
+  --accent: #0f5c56;      /*  7.4:1 on --bg  */
+  --accent-fg: #ffffff;   /*  7.4:1 on --accent */
+  --accent-soft: #e2efed;
+
+  --urgent: #a62a21;      /*  6.5:1 on --bg  */
+  --urgent-fg: #ffffff;
+  --urgent-soft: #fbeae8;
+
+  --focus: #0f5c56;
+  --radius: 0.625rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101413;
+    --surface: #181d1c;
+    --surface-2: #222827;
+    --border: #333b39;
+    --fg: #eceeed;
+    --fg-muted: #a3adab;   /* 8.1:1 on --bg */
+
+    --accent: #5ec8bc;     /* 9.6:1 on --bg */
+    --accent-fg: #06201e;
+    --accent-soft: #16302e;
+
+    --urgent: #f2b3ad;     /* 8.4:1 on --bg */
+    --urgent-fg: #3d0b07;
+    --urgent-soft: #351917;
+
+    --focus: #5ec8bc;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #101413;
+  --surface: #181d1c;
+  --surface-2: #222827;
+  --border: #333b39;
+  --fg: #eceeed;
+  --fg-muted: #a3adab;
+  --accent: #5ec8bc;
+  --accent-fg: #06201e;
+  --accent-soft: #16302e;
+  --urgent: #f2b3ad;
+  --urgent-fg: #3d0b07;
+  --urgent-soft: #351917;
+  --focus: #5ec8bc;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-urgent: var(--urgent);
+  --color-urgent-fg: var(--urgent-fg);
+  --color-urgent-soft: var(--urgent-soft);
+
+  --radius-DEFAULT: var(--radius);
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Visible focus everywhere. The stranger view gets used one-handed under
+     stress; losing the focus ring is not an option. */
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  /* Minimum touch target. Non-negotiable — see docs/ARCHITECTURE.md §9. */
+  button,
+  [role="button"],
+  a[href] {
+    min-height: 44px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
