@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Field, Textarea } from '@/components/ui/field'
 import { ErrorNote } from '@/components/ui/alert'
 import { ListSkeleton } from '@/components/ui/skeleton'
+import { PushToggle } from '@/components/PushToggle'
 import { SignalFields } from '@/components/SignalFields'
 import {
   EMPTY_SIGNAL_FIELDS,
@@ -179,6 +180,10 @@ export default function Inbox() {
       <h1 className="mt-4 text-2xl font-semibold tracking-tight">
         Questions about {person?.display_name ?? ''}
       </h1>
+
+      <div className="mt-5">
+        <PushToggle personName={person?.display_name} />
+      </div>
 
       {error && (
         <div className="mt-6">

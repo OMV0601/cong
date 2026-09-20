@@ -178,6 +178,83 @@ status board that checks every piece of plumbing and names what's missing.
 
 ---
 
+## Push notifications
+
+Realtime already delivers an answer back to a stranger whose tab is open. Push
+is the other direction: the parent's phone is in their pocket with the browser
+closed, and nothing short of a system notification will reach them.
+
+Push is an **accelerator, never the delivery path**. Every failure in it is
+swallowed and logged — an Ask that sends without a notification is degraded, but
+an Ask that fails because a notification failed is broken.
+
+### One-time setup
+
+1. **Generate a keypair** (skip if `VITE_VAPID_PUBLIC_KEY` is already set):
+
+   ```bash
+   npm run vapid
+   ```
+
+   The public half is printed. The private half is written to
+   `.vapid-private.local`, git-ignored and deliberately never printed —
+   anything printed ends up in scrollback, CI logs and screen recordings.
+
+2. **Deploy the Edge Function.** Needs the [Supabase
+   CLI](https://supabase.com/docs/guides/local-development).
+
+   ```bash
+   supabase login
+   supabase link --project-ref <your-project-ref>
+   supabase functions deploy notify-ask
+   ```
+
+3. **Set its secrets.** These live in Supabase, never in this repo:
+
+   ```bash
+   supabase secrets set VAPID_PRIVATE_KEY="$(cat .vapid-private.local)"
+   supabase secrets set VAPID_PUBLIC_KEY="<same value as VITE_VAPID_PUBLIC_KEY>"
+   supabase secrets set VAPID_SUBJECT="mailto:you@example.com"
+   ```
+
+   `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are injected automatically.
+   **Do not set them by hand, and never put the service role key anywhere near
+   the frontend.**
+
+4. **Delete the private key file** once the secret is set:
+
+   ```bash
+   rm .vapid-private.local
+   ```
+
+5. Make sure `VITE_VAPID_PUBLIC_KEY` is in Vercel's environment variables, then
+   **redeploy** — Vite inlines it at build time.
+
+### Turning it on
+
+The family opens **Questions** for a person and taps **Get notified on this
+device**, once per device. Each browser install is subscribed separately; a
+parent with a phone and a laptop taps it on both.
+
+### Verifying it end to end
+
+The only test that counts:
+
+1. Sign in on an Android phone, open Questions, turn notifications on.
+2. **Close the browser entirely.** Not a background tab — closed.
+3. On a laptop, open a share code in an incognito window and send an Ask.
+4. The phone should buzz within a few seconds. Tapping the notification should
+   open that person's Inbox with the question waiting.
+
+If nothing arrives, in this order: check `/debug` for the VAPID row; check
+`supabase functions logs notify-ask` for what it reported; confirm
+`VAPID_PUBLIC_KEY` in Supabase secrets is byte-identical to
+`VITE_VAPID_PUBLIC_KEY` in Vercel. A mismatch between those two is the classic
+failure — the browser subscribes happily against a key the server cannot sign
+for, and nothing anywhere reports an error.
+
+---
+
 ## How the code is laid out
 
 ```

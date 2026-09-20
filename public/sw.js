@@ -36,7 +36,7 @@ self.addEventListener('push', (event) => {
     tag: data.askId ? `ask-${data.askId}` : 'lexicon-ask',
     renotify: true,
     requireInteraction: true,
-    data: { url: data.url || '/inbox' },
+    data: { url: data.url || '/app' },
     actions: [{ action: 'open', title: 'Open' }],
   }
 
@@ -45,7 +45,7 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
-  const target = new URL(event.notification.data?.url || '/inbox', self.location.origin)
+  const target = new URL(event.notification.data?.url || '/app', self.location.origin)
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {

@@ -377,7 +377,23 @@ export async function createAsk(
     await supabase.storage.from(SIGNALS_BUCKET).remove([clipPath])
     throw error
   }
-  return data as AskRequest
+
+  const ask = data as AskRequest
+
+  // Wake the family's phones. Deliberately not awaited for its result and
+  // deliberately unable to fail the Ask: Realtime is the path that actually
+  // delivers the answer, and push is what makes someone look at it. A notifier
+  // that is misconfigured, rate-limited or simply down must never turn a
+  // working Ask into an error on a nurse's screen.
+  try {
+    void supabase.functions
+      .invoke('notify-ask', { body: { askId: ask.id } })
+      .catch((err) => console.error('notify-ask failed', err))
+  } catch (err) {
+    console.error('notify-ask could not be invoked', err)
+  }
+
+  return ask
 }
 
 /**
