@@ -178,6 +178,46 @@ status board that checks every piece of plumbing and names what's missing.
 
 ---
 
+## Demo data
+
+For filming, and for anyone who wants to try Lexicon without inventing a
+person and filming eight clips first.
+
+```bash
+node scripts/make-fixtures.mjs          # only if you're changing the clips
+SEED_EMAIL=you@example.com SEED_PASSWORD=... npm run seed:demo
+```
+
+The seed creates a person called **Rosa (demo)** with eight signals, written to
+be plausible rather than dramatic. The pair the whole thing turns on is *Pain
+hum* and *Anxious hum*: a stranger cannot tell them apart, a parent never
+confuses them, and their written meanings are deliberately hard to distinguish
+by description alone. That is the product's argument in two tiles.
+
+It runs through the **anon key and ordinary RLS**, signing in as a normal
+account — so it doubles as a check that the policies actually permit the app's
+own workflow. Never give it a service role key.
+
+It is idempotent. It finds the demo person by name and adds only the signals
+that are missing, so running it twice does not produce sixteen tiles.
+
+At the end it prints a share code. Put it in `VITE_DEMO_CODE` (`.env.local` and
+Vercel, then redeploy) and the landing page gains a **See a real lexicon**
+button that opens the stranger's view with no account.
+
+### The clips are not real people
+
+`fixtures/` holds abstract motion studies drawn by a canvas and recorded through
+Chromium — a waveform for a hum, an oscillating form for rocking. They are not
+footage of anybody, staged or otherwise.
+
+Any person seeded this way is flagged `is_demo`, and **both** the family's grid
+and the stranger's view carry a banner saying so. A demo that cannot be told
+apart from the real thing is not a demo, and being caught overclaiming costs
+more than the demo was ever worth.
+
+---
+
 ## Push notifications
 
 Realtime already delivers an answer back to a stranger whose tab is open. Push

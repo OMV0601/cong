@@ -58,6 +58,12 @@ export interface Person {
   display_name: string
   avatar_url: string | null
   created_by: string
+  /**
+   * Seeded sample data rather than a real person. Surfaced on screen wherever
+   * this person appears — a demo nobody can tell apart from the real thing is
+   * not a demo, it is a misrepresentation.
+   */
+  is_demo: boolean
   created_at: string
 }
 

@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "vapid": "node scripts/generate-vapid.mjs"
+    "vapid": "node scripts/generate-vapid.mjs",
+    "seed:demo": "node scripts/seed-demo.mjs",
+    "fixtures": "node scripts/make-fixtures.mjs"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.1.2",

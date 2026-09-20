@@ -12,6 +12,7 @@ import {
   X,
 } from 'lucide-react'
 import { AskPanel } from '@/components/AskPanel'
+import { DemoBanner } from '@/components/DemoBanner'
 import { ConfirmPanel } from '@/components/ConfirmPanel'
 import { Button } from '@/components/ui/button'
 import { SignalTile } from '@/components/SignalTile'
@@ -52,6 +53,7 @@ export default function StrangerView() {
   const [soundOnly, setSoundOnly] = useState(false)
   const [audioOnId, setAudioOnId] = useState<string | null>(null)
   const [personId, setPersonId] = useState<string | null>(null)
+  const [isDemo, setIsDemo] = useState(false)
   const [confirming, setConfirming] = useState<Signal | null>(null)
   const [asking, setAsking] = useState(false)
   const [confirmed, setConfirmed] = useState<Signal | null>(null)
@@ -78,6 +80,7 @@ export default function StrangerView() {
         if (isStale()) return
         setPersonName(claimed.personName)
         setPersonId(claimed.personId)
+        setIsDemo(claimed.isDemo)
 
         const list = await signalsForPerson(claimed.personId)
         if (isStale()) return
@@ -245,6 +248,12 @@ export default function StrangerView() {
           </button>
         )}
       </nav>
+
+      {isDemo && (
+        <div className="mt-4">
+          <DemoBanner name={personName ?? undefined} />
+        </div>
+      )}
 
       {/* Below Look and Point, deliberately. Someone who could name what they
           are seeing would not need this app — but a long lexicon stops being

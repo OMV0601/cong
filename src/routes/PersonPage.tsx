@@ -6,6 +6,7 @@ import { ErrorNote } from '@/components/ui/alert'
 import { ConfirmDialog } from '@/components/ui/confirm'
 import { SignalTile } from '@/components/SignalTile'
 import { SearchBox } from '@/components/SearchBox'
+import { DemoBanner } from '@/components/DemoBanner'
 import { TileGridSkeleton } from '@/components/ui/skeleton'
 import {
   asksForPerson,
@@ -146,6 +147,12 @@ export default function PersonPage() {
           </Button>
         </div>
       </div>
+
+      {person?.is_demo && (
+        <div className="mt-6">
+          <DemoBanner name={person.display_name} />
+        </div>
+      )}
 
       {error && (
         <div className="mt-6">

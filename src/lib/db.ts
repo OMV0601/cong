@@ -283,6 +283,7 @@ export interface ClaimedGrant {
   personId: string
   personName: string
   expiresAt: string
+  isDemo: boolean
 }
 
 /**
@@ -305,6 +306,12 @@ export async function claimGrant(token: string): Promise<ClaimedGrant> {
     personId: row.person_id,
     personName: row.person_name,
     expiresAt: row.expires_at,
+    // Explicit === true, because a deployment still on 0009 returns no such
+    // column. Falling back to "not a demo" is the right direction to be wrong
+    // in: a missing banner over sample data is a small embarrassment, whereas
+    // a "this is demo data" banner over a real child's signals invites a nurse
+    // to discount information she should be acting on.
+    isDemo: row.is_demo === true,
   }
 }
 
