@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, QrCode, Video } from 'lucide-react'
+import { ArrowLeft, Inbox, QrCode, Video } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ErrorNote } from '@/components/ui/alert'
 import { SignalTile } from '@/components/SignalTile'
-import { getPerson, listSignals, signPaths } from '@/lib/db'
+import { asksForPerson, getPerson, listSignals, signPaths } from '@/lib/db'
 import { orderForDisplay } from '@/lib/filter'
 import type { Person, Signal } from '@/lib/types'
 import { errorMessage } from '@/lib/errors'
@@ -18,14 +18,20 @@ export default function PersonPage() {
   // Only one tile may have sound on. A grid of clips all talking at once is
   // not something anyone can read.
   const [audioOnId, setAudioOnId] = useState<string | null>(null)
+  const [pendingAsks, setPendingAsks] = useState(0)
 
   const load = useCallback(
     async (isStale: () => boolean) => {
       try {
-        const [p, s] = await Promise.all([getPerson(id), listSignals(id)])
+        const [p, s, asks] = await Promise.all([
+          getPerson(id),
+          listSignals(id),
+          asksForPerson(id).catch(() => []),
+        ])
         if (isStale()) return
         setPerson(p)
         setSignals(s)
+        setPendingAsks(asks.filter((a) => a.status === 'pending').length)
 
         // One signing call for the whole grid rather than one per tile.
         const paths = s.flatMap((sig) =>
@@ -76,7 +82,13 @@ export default function PersonPage() {
               : `${signals.length} ${signals.length === 1 ? 'signal' : 'signals'}`}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant={pendingAsks > 0 ? 'urgent' : 'outline'}>
+            <Link to={`/person/${id}/inbox`}>
+              <Inbox aria-hidden />
+              {pendingAsks > 0 ? `${pendingAsks} waiting` : 'Questions'}
+            </Link>
+          </Button>
           <Button asChild variant="outline">
             <Link to={`/person/${id}/share`}>
               <QrCode aria-hidden /> Share

@@ -8,6 +8,7 @@ import People from './routes/People'
 import PersonPage from './routes/PersonPage'
 import RecordSignal from './routes/RecordSignal'
 import SharePage from './routes/SharePage'
+import Inbox from './routes/Inbox'
 import StrangerView from './routes/StrangerView'
 
 /**
@@ -27,6 +28,7 @@ function FamilyRoutes() {
       <Route path="/person/:id" element={<PersonPage />} />
       <Route path="/person/:id/record" element={<RecordSignal />} />
       <Route path="/person/:id/share" element={<SharePage />} />
+      <Route path="/person/:id/inbox" element={<Inbox />} />
       <Route path="/setup" element={<Setup />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

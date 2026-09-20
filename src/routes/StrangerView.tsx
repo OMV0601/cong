@@ -1,6 +1,19 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Hand, Loader2, Smile, Footprints, User, Volume2, X } from 'lucide-react'
+import {
+  Check,
+  Hand,
+  HelpCircle,
+  Loader2,
+  Smile,
+  Footprints,
+  User,
+  Volume2,
+  X,
+} from 'lucide-react'
+import { AskPanel } from '@/components/AskPanel'
+import { ConfirmPanel } from '@/components/ConfirmPanel'
+import { Button } from '@/components/ui/button'
 import { SignalTile } from '@/components/SignalTile'
 import { ErrorNote } from '@/components/ui/alert'
 import { getSupabase } from '@/lib/supabase'
@@ -34,6 +47,10 @@ export default function StrangerView() {
   const [region, setRegion] = useState<BodyRegion | null>(null)
   const [soundOnly, setSoundOnly] = useState(false)
   const [audioOnId, setAudioOnId] = useState<string | null>(null)
+  const [personId, setPersonId] = useState<string | null>(null)
+  const [confirming, setConfirming] = useState<Signal | null>(null)
+  const [asking, setAsking] = useState(false)
+  const [confirmed, setConfirmed] = useState<Signal | null>(null)
 
   const open = useCallback(
     async (isStale: () => boolean) => {
@@ -56,6 +73,7 @@ export default function StrangerView() {
         const claimed = await claimGrant(token)
         if (isStale()) return
         setPersonName(claimed.personName)
+        setPersonId(claimed.personId)
 
         const list = await signalsForPerson(claimed.personId)
         if (isStale()) return
@@ -110,6 +128,33 @@ export default function StrangerView() {
         <p className="flex items-center gap-2 text-sm text-fg-muted">
           <Loader2 className="size-4 animate-spin" aria-hidden /> Opening…
         </p>
+      </main>
+    )
+  }
+
+  if (confirming) {
+    return (
+      <main className="mx-auto w-full max-w-lg px-4 py-6">
+        <ConfirmPanel
+          signal={confirming}
+          signalVideoUrl={urls.get(confirming.video_path)}
+          onDone={(result) => {
+            if (result === true) setConfirmed(confirming)
+            setConfirming(null)
+          }}
+        />
+      </main>
+    )
+  }
+
+  if (asking && personId) {
+    return (
+      <main className="mx-auto w-full max-w-lg px-4 py-6">
+        <AskPanel
+          personId={personId}
+          personName={personName ?? 'their'}
+          onClose={() => setAsking(false)}
+        />
       </main>
     )
   }
@@ -181,6 +226,19 @@ export default function StrangerView() {
         )}
       </nav>
 
+      {confirmed && (
+        <p
+          className="mt-4 flex items-start gap-2 rounded-[var(--radius)] bg-accent-soft px-3 py-2.5 text-sm"
+          aria-live="polite"
+        >
+          <Check className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden />
+          <span>
+            <strong className="font-medium">{confirmed.label}</strong>
+            {confirmed.meaning ? ` — ${confirmed.meaning}` : ''}
+          </span>
+        </p>
+      )}
+
       <p className="mt-3 text-xs text-fg-muted" aria-live="polite">
         {shown.length} of {all.length} shown
       </p>
@@ -208,11 +266,27 @@ export default function StrangerView() {
                 onToggleAudio={(s) =>
                   setAudioOnId((cur) => (cur === s.id ? null : s.id))
                 }
+                onSelect={setConfirming}
+                selected={confirmed?.id === signal.id}
               />
             </li>
           ))}
         </ul>
       )}
+
+      <div className="mt-8 rounded-[var(--radius)] border border-border bg-surface p-4">
+        <h2 className="flex items-center gap-2 text-sm font-medium">
+          <HelpCircle className="size-4 text-fg-muted" aria-hidden />
+          None of these match?
+        </h2>
+        <p className="mt-1 text-sm text-fg-muted">
+          Film what you are seeing and send it to the people who know them.
+          You don&rsquo;t have to describe it.
+        </p>
+        <Button className="mt-3" onClick={() => setAsking(true)}>
+          Ask them
+        </Button>
+      </div>
     </main>
   )
 }

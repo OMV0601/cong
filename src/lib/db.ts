@@ -7,6 +7,7 @@ import {
 } from './recorder'
 import type {
   AccessGrant,
+  AskRequest,
   BodyRegion,
   FlaccCategory,
   Person,
@@ -282,4 +283,152 @@ export async function signalsForPerson(personId: string): Promise<Signal[]> {
   })
   if (error) throw error
   return (data ?? []) as Signal[]
+}
+
+// ---------------------------------------------------------------------------
+// Layer 3 — Ask
+// ---------------------------------------------------------------------------
+
+/**
+ * Sends a stranger's "what is this?" to the people who can read it.
+ *
+ * The clip goes under `<person_id>/asks/`, which is the only folder a grant
+ * holder is allowed to write to.
+ */
+export async function createAsk(
+  personId: string,
+  clip: RecordedClip,
+  note: string
+): Promise<AskRequest> {
+  const supabase = client()
+  const id = crypto.randomUUID()
+  const clipPath = `${personId}/asks/${id}.${extensionFor(clip.mimeType)}`
+
+  const { error: uploadError } = await supabase.storage
+    .from(SIGNALS_BUCKET)
+    .upload(clipPath, clip.blob, {
+      contentType: baseMimeType(clip.mimeType),
+      upsert: false,
+    })
+  if (uploadError) {
+    console.error('createAsk: upload failed', uploadError)
+    throw uploadError
+  }
+
+  const { data, error } = await supabase.rpc('create_ask', {
+    p_person_id: personId,
+    p_clip_path: clipPath,
+    p_note: note,
+  })
+  if (error) {
+    console.error('createAsk: rpc failed', error)
+    await supabase.storage.from(SIGNALS_BUCKET).remove([clipPath])
+    throw error
+  }
+  return data as AskRequest
+}
+
+/**
+ * Watches one Ask for its answer.
+ *
+ * Realtime rather than polling: the nurse should not have to touch the screen
+ * again, and an answer arriving thirty seconds late is an answer that arrived
+ * after she gave up.
+ */
+export function watchAsk(
+  askId: string,
+  onUpdate: (ask: AskRequest) => void
+): () => void {
+  const supabase = client()
+  const channel = supabase
+    .channel(`ask:${askId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'ask_requests',
+        filter: `id=eq.${askId}`,
+      },
+      (payload) => onUpdate(payload.new as AskRequest)
+    )
+    .subscribe()
+
+  return () => {
+    void supabase.removeChannel(channel)
+  }
+}
+
+/** Fallback for when a Realtime message is missed. */
+export async function getAsk(askId: string): Promise<AskRequest | null> {
+  const { data, error } = await client()
+    .from('ask_requests')
+    .select('*')
+    .eq('id', askId)
+    .maybeSingle()
+  if (error) throw error
+  return data
+}
+
+export async function asksForPerson(personId: string): Promise<AskRequest[]> {
+  const { data, error } = await client().rpc('asks_for_person', {
+    p_person_id: personId,
+  })
+  if (error) throw error
+  return (data ?? []) as AskRequest[]
+}
+
+export async function answerAsk(
+  askId: string,
+  text: string,
+  signalId: string | null
+): Promise<AskRequest> {
+  const { data, error } = await client().rpc('answer_ask', {
+    p_ask_id: askId,
+    p_text: text,
+    p_signal_id: signalId,
+  })
+  if (error) throw error
+  return data as AskRequest
+}
+
+export async function markAskNoMatch(askId: string): Promise<AskRequest> {
+  const { data, error } = await client().rpc('mark_ask_no_match', {
+    p_ask_id: askId,
+  })
+  if (error) throw error
+  return data as AskRequest
+}
+
+/** Records that a human compared two clips and decided. */
+export async function confirmMatch(
+  signalId: string,
+  confirmed: boolean
+): Promise<void> {
+  const { error } = await client().rpc('confirm_match', {
+    p_signal_id: signalId,
+    p_confirmed: confirmed,
+  })
+  if (error) console.error('confirmMatch failed', error)
+}
+
+/** Turns an answered Ask into a permanent entry in the lexicon. */
+export async function promoteAskToSignal(
+  askId: string,
+  label: string,
+  meaning: string,
+  bodyRegion: BodyRegion,
+  isSound: boolean,
+  urgency: Urgency
+): Promise<Signal> {
+  const { data, error } = await client().rpc('promote_ask_to_signal', {
+    p_ask_id: askId,
+    p_label: label,
+    p_meaning: meaning,
+    p_body_region: bodyRegion,
+    p_is_sound: isSound,
+    p_urgency: urgency,
+  })
+  if (error) throw error
+  return data as Signal
 }
