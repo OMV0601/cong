@@ -7,6 +7,7 @@ import { SignalTile } from '@/components/SignalTile'
 import { getPerson, listSignals, signPaths } from '@/lib/db'
 import { orderForDisplay } from '@/lib/filter'
 import type { Person, Signal } from '@/lib/types'
+import { errorMessage } from '@/lib/errors'
 
 export default function PersonPage() {
   const { id = '' } = useParams()
@@ -32,7 +33,7 @@ export default function PersonPage() {
         setUrls(signed)
       } catch (e) {
         if (isStale()) return
-        setError(e instanceof Error ? e.message : 'Could not load.')
+        setError(errorMessage(e, 'Could not load.'))
         setSignals([])
       }
     },

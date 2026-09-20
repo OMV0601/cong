@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Field, Input } from '@/components/ui/field'
 import { ErrorNote } from '@/components/ui/alert'
 import { useAuth } from '@/lib/auth-context'
+import { errorMessage } from '@/lib/errors'
 
 export default function SignIn() {
   const { signInWithPassword, signUp } = useAuth()
@@ -26,7 +27,7 @@ export default function SignIn() {
         setNotice('Account created. Check your email if confirmation is on.')
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong.')
+      setError(errorMessage(err, 'Something went wrong.'))
     } finally {
       setBusy(false)
     }

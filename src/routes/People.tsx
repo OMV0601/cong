@@ -7,6 +7,7 @@ import { ErrorNote } from '@/components/ui/alert'
 import { createPerson, listPeople } from '@/lib/db'
 import { useAuth } from '@/lib/auth-context'
 import type { Person } from '@/lib/types'
+import { errorMessage } from '@/lib/errors'
 
 export default function People() {
   const { signOut } = useAuth()
@@ -20,7 +21,7 @@ export default function People() {
     listPeople()
       .then(setPeople)
       .catch((e) => {
-        setError(e instanceof Error ? e.message : 'Could not load.')
+        setError(errorMessage(e, 'Could not load.'))
         setPeople([])
       })
   }, [])
@@ -35,7 +36,7 @@ export default function People() {
       setName('')
       setAdding(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not add.')
+      setError(errorMessage(err, 'Could not add.'))
     } finally {
       setBusy(false)
     }

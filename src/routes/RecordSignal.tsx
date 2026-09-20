@@ -21,6 +21,7 @@ import {
   type Urgency,
 } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { errorMessage } from '@/lib/errors'
 
 type Stage = 'ready' | 'recording' | 'review'
 
@@ -157,7 +158,7 @@ export default function RecordSignal() {
       })
       navigate(`/person/${id}`)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not save.')
+      setError(errorMessage(e, 'Could not save.'))
       setSaving(false)
     }
   }

@@ -58,7 +58,10 @@ export async function createPerson(displayName: string): Promise<Person> {
     .insert({ display_name: displayName.trim(), created_by: user.id })
     .select()
     .single()
-  if (error) throw error
+  if (error) {
+    console.error('createPerson: people insert failed', error)
+    throw error
+  }
 
   const { error: circleError } = await supabase.from('circle_members').insert({
     person_id: person.id,
@@ -68,6 +71,7 @@ export async function createPerson(displayName: string): Promise<Person> {
   })
 
   if (circleError) {
+    console.error('createPerson: circle_members insert failed', circleError)
     await supabase.from('people').delete().eq('id', person.id)
     throw circleError
   }

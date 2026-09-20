@@ -3,6 +3,7 @@ import { Check, X, Loader2 } from 'lucide-react'
 import { getSupabase } from '@/lib/supabase'
 import { env, isSupabaseConfigured } from '@/lib/env'
 import { cn } from '@/lib/utils'
+import { errorMessage } from '@/lib/errors'
 
 type CheckState = 'pending' | 'pass' | 'fail'
 
@@ -90,7 +91,7 @@ export default function Setup() {
           const reg = await navigator.serviceWorker.register('/sw.js')
           set(4, 'pass', `Scope ${reg.scope}`)
         } catch (e) {
-          set(4, 'fail', e instanceof Error ? e.message : 'Registration failed')
+          set(4, 'fail', errorMessage(e, 'Registration failed'))
         }
       } else {
         set(4, 'fail', 'No service worker support')
