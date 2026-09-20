@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, Video } from 'lucide-react'
+import { ArrowLeft, QrCode, Video } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ErrorNote } from '@/components/ui/alert'
 import { SignalTile } from '@/components/SignalTile'
@@ -76,11 +76,18 @@ export default function PersonPage() {
               : `${signals.length} ${signals.length === 1 ? 'signal' : 'signals'}`}
           </p>
         </div>
-        <Button asChild>
-          <Link to={`/person/${id}/record`}>
-            <Video aria-hidden /> Record a signal
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild variant="outline">
+            <Link to={`/person/${id}/share`}>
+              <QrCode aria-hidden /> Share
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link to={`/person/${id}/record`}>
+              <Video aria-hidden /> Record a signal
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {error && (

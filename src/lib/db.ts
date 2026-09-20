@@ -5,7 +5,14 @@ import {
   posterFromBlob,
   type RecordedClip,
 } from './recorder'
-import type { BodyRegion, FlaccCategory, Person, Signal, Urgency } from './types'
+import type {
+  AccessGrant,
+  BodyRegion,
+  FlaccCategory,
+  Person,
+  Signal,
+  Urgency,
+} from './types'
 
 export const SIGNALS_BUCKET = 'signals'
 
@@ -193,4 +200,86 @@ export async function signPaths(
     if (entry.signedUrl && entry.path) map.set(entry.path, entry.signedUrl)
   }
   return map
+}
+
+// ---------------------------------------------------------------------------
+// Access grants — the scannable code
+// ---------------------------------------------------------------------------
+
+export async function listGrants(personId: string): Promise<AccessGrant[]> {
+  const { data, error } = await client()
+    .from('access_grants')
+    .select('*')
+    .eq('person_id', personId)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return data ?? []
+}
+
+export async function createGrant(
+  personId: string,
+  label: string,
+  hours: number
+): Promise<AccessGrant> {
+  const { data, error } = await client().rpc('create_grant', {
+    p_person_id: personId,
+    p_label: label,
+    p_hours: hours,
+  })
+  if (error) {
+    console.error('createGrant failed', error)
+    throw error
+  }
+  return data as AccessGrant
+}
+
+export async function revokeGrant(grantId: string): Promise<void> {
+  const { error } = await client().rpc('revoke_grant', { p_grant_id: grantId })
+  if (error) throw error
+}
+
+export function isGrantLive(grant: AccessGrant): boolean {
+  return !grant.revoked_at && new Date(grant.expires_at) > new Date()
+}
+
+// ---------------------------------------------------------------------------
+// The stranger's side
+// ---------------------------------------------------------------------------
+
+export interface ClaimedGrant {
+  personId: string
+  personName: string
+  expiresAt: string
+}
+
+/**
+ * Exchanges a scanned token for a session.
+ *
+ * Requires an authenticated caller, so the stranger is signed in anonymously
+ * first. That gives them a real auth.uid(), which is what lets Storage and
+ * Realtime treat them like any other user instead of needing a token threaded
+ * through every request.
+ */
+export async function claimGrant(token: string): Promise<ClaimedGrant> {
+  const { data, error } = await client().rpc('claim_grant', { p_token: token })
+  if (error) {
+    console.error('claimGrant failed', error)
+    throw error
+  }
+  const row = Array.isArray(data) ? data[0] : data
+  if (!row) throw new Error('This code is not valid.')
+  return {
+    personId: row.person_id,
+    personName: row.person_name,
+    expiresAt: row.expires_at,
+  }
+}
+
+/** Signals visible to whoever is asking — a circle member or a grant holder. */
+export async function signalsForPerson(personId: string): Promise<Signal[]> {
+  const { data, error } = await client().rpc('signals_for_person', {
+    p_person_id: personId,
+  })
+  if (error) throw error
+  return (data ?? []) as Signal[]
 }
