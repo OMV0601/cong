@@ -2,7 +2,10 @@
  * Screenshots every route at phone and desktop width, and fails on the two
  * accessibility rules that are non-negotiable for this project.
  *
- *   npm run build && npm run audit:ui
+ *   npm run audit:ui
+ *
+ * Builds its own bundle, so it needs no prior build and does not care what is
+ * in .env.local.
  *
  * Lexicon is an accessibility product. If the app itself is not accessible,
  * nothing else about the submission matters, and "we checked it by eye" is not
@@ -24,21 +27,51 @@
  */
 import { chromium } from 'playwright'
 import { createServer } from 'node:http'
-import { readFile, mkdir, readdir } from 'node:fs/promises'
+import { execFileSync } from 'node:child_process'
+import { readFile, mkdir } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, extname, join, normalize } from 'node:path'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const DIST = join(ROOT, 'dist')
 const FIXTURES = join(ROOT, 'fixtures')
 const SHOTS = join(ROOT, '.ui-audit')
+const DIST = join(SHOTS, 'dist')
 
 const PROJECT_REF = 'audit'
 const MIN_TARGET = 44
 
+/*
+ * Builds its own bundle rather than auditing whatever is in dist/.
+ *
+ * supabase-js keys its stored session on the project ref from the URL that was
+ * baked in at build time, so a bundle built against a real project ignores the
+ * stub session this script installs — and every signed-in route quietly
+ * redirects to sign-in. The audit still reports "no violations", because a
+ * sign-in screen has no violations. That is the worst kind of green.
+ *
+ * So: one build, with known env, owned by this script.
+ */
+console.log('Building with a stub backend…')
+execFileSync(
+  'npx',
+  ['vite', 'build', '--outDir', DIST, '--emptyOutDir', '--logLevel', 'warn'],
+  {
+    cwd: ROOT,
+    stdio: 'inherit',
+    env: {
+      ...process.env,
+      VITE_SUPABASE_URL: `https://${PROJECT_REF}.supabase.co`,
+      VITE_SUPABASE_ANON_KEY: 'sb_publishable_auditstub',
+      VITE_VAPID_PUBLIC_KEY:
+        'BJtFm41uCnQCvSwqW22QmbSND9pBLRDJ39v0ysMrgWXDtXfoRIEBbZrUeACSURLeuMg5-eZqqkBif8k-9HDDkWg',
+      VITE_DEMO_CODE: 'demotoken',
+    },
+  }
+)
+
 if (!existsSync(DIST)) {
-  console.error('\n  No dist/. Run `npm run build` first.\n')
+  console.error('\n  Build produced no output.\n')
   process.exit(1)
 }
 
@@ -56,9 +89,8 @@ const MIME = {
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost')
   let file = join(DIST, normalize(url.pathname))
-  if (!existsSync(file) || (await readdir(DIST).then(() => false).catch(() => false))) {
-    // fall through
-  }
+  // Same fall-through the SPA rewrite does in production: a path with no file
+  // extension is a route, not an asset.
   if (!existsSync(file) || extname(file) === '') file = join(DIST, 'index.html')
   try {
     const body = await readFile(file)
@@ -333,17 +365,27 @@ const AUDIT = () => {
   return { unlabelled, small }
 }
 
+/**
+ * `expect` is a string that must appear on the rendered page.
+ *
+ * Without it this script cannot tell a clean page from a page that never
+ * loaded: a sign-in screen has no unlabelled inputs and no small targets, so
+ * an auth redirect would report as a pass. Every route now has to prove it is
+ * the route it claims to be.
+ */
 const ROUTES = [
-  { name: 'landing', path: '/', auth: false },
-  { name: 'signin', path: '/signin', auth: false },
-  { name: 'stranger', path: '/c/demotoken', auth: false },
-  { name: 'people', path: '/app', auth: true },
-  { name: 'person', path: `/person/${PERSON.id}`, auth: true },
-  { name: 'record', path: `/person/${PERSON.id}/record`, auth: true },
-  { name: 'share', path: `/person/${PERSON.id}/share`, auth: true },
-  { name: 'inbox', path: `/person/${PERSON.id}/inbox`, auth: true },
-  { name: 'activity', path: `/person/${PERSON.id}/activity`, auth: true },
-  { name: 'notfound', path: '/no-such-page', auth: false },
+  { name: 'landing', path: '/', auth: false, expect: 'What the stranger does' },
+  { name: 'signin', path: '/signin', auth: false, expect: 'Continue as guest' },
+  { name: 'stranger', path: '/c/demotoken', auth: false, expect: 'How Rosa communicates' },
+  { name: 'people', path: '/app', auth: true, expect: 'Sign out' },
+  { name: 'person', path: `/person/${PERSON.id}`, auth: true, expect: 'Record a signal' },
+  // Not the labelling form: that appears only once a clip exists, and there is
+  // no camera here. This is what the route shows on arrival.
+  { name: 'record', path: `/person/${PERSON.id}/record`, auth: true, expect: 'Short is better' },
+  { name: 'share', path: `/person/${PERSON.id}/share`, auth: true, expect: 'Create a code' },
+  { name: 'inbox', path: `/person/${PERSON.id}/inbox`, auth: true, expect: 'Questions about' },
+  { name: 'activity', path: `/person/${PERSON.id}/activity`, auth: true, expect: 'opened the lexicon' },
+  { name: 'notfound', path: '/no-such-page', auth: false, expect: 'nothing at this address' },
 ]
 
 const VIEWPORTS = [
@@ -393,6 +435,14 @@ for (const theme of THEMES) {
       checked++
 
       const label = `${route.name}/${viewport.name}/${theme}`
+
+      const text = await page.evaluate(() => document.body.innerText)
+      if (!text.includes(route.expect)) {
+        failures.push(
+          `${label}: page did not render — expected to find ${JSON.stringify(route.expect)}`
+        )
+      }
+
       for (const item of result.unlabelled) {
         failures.push(`${label}: unlabelled control — ${item}`)
       }
