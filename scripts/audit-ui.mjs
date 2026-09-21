@@ -374,7 +374,7 @@ const AUDIT = () => {
  * the route it claims to be.
  */
 const ROUTES = [
-  { name: 'landing', path: '/', auth: false, expect: 'What the stranger does' },
+  { name: 'landing', path: '/', auth: false, expect: 'Each one exists because the one before it failed' },
   { name: 'signin', path: '/signin', auth: false, expect: 'Continue as guest' },
   { name: 'stranger', path: '/c/demotoken', auth: false, expect: 'How Rosa communicates' },
   { name: 'people', path: '/app', auth: true, expect: 'Sign out' },
@@ -436,8 +436,10 @@ for (const theme of THEMES) {
 
       const label = `${route.name}/${viewport.name}/${theme}`
 
-      const text = await page.evaluate(() => document.body.innerText)
-      if (!text.includes(route.expect)) {
+      // Case-insensitive: innerText applies text-transform, so a heading
+      // styled uppercase would otherwise fail a check that is about content.
+      const text = (await page.evaluate(() => document.body.innerText)).toLowerCase()
+      if (!text.includes(route.expect.toLowerCase())) {
         failures.push(
           `${label}: page did not render — expected to find ${JSON.stringify(route.expect)}`
         )

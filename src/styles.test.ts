@@ -74,6 +74,18 @@ const PAIRS: Array<[string, string, number]> = [
   ['--focus', '--surface-2', 3],
   // Borders separate surfaces; 3:1 is the AA floor for a meaningful boundary.
   ['--border', '--bg', 1.3],
+  // The fixed editorial band. It does not flip with the theme, so it has to
+  // hold on its own terms in both.
+  ['--band-fg', '--band', 4.5],
+  ['--band-muted', '--band', 4.5],
+  ['--band-accent', '--band', 4.5],
+  ['--band-border', '--band', 1.15],
+  // The band has to be visibly a different surface from the page it sits on,
+  // in BOTH themes. At one point it was within 1.06:1 of the dark theme's
+  // background and simply vanished there. 1.24:1 is what --surface-2 already
+  // manages against --bg, so it is the level of separation this app has
+  // already proven is legible.
+  ['--band', '--bg', 1.24],
 ]
 
 describe.each([

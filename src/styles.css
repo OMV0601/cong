@@ -29,6 +29,28 @@
   --urgent-soft: #fbeae8;
 
   --focus: #0f5c56;
+
+  /* The narrative band: the landing page's two quiet sections.
+
+     It is near-black in both themes — the same dark the signal clips are
+     filmed against — so those sections read as continuous with the footage,
+     and an 11pm emergency room looks like 11pm whichever mode you are in.
+
+     It is NOT the same value in both, and the reason took two attempts to get
+     right. At the light theme's value it sat within 1.05:1 of the dark theme's
+     page background, so in dark mode the band vanished entirely and the page
+     lost its rhythm. Going darker still doesn't help — below a near-black
+     background there is no luminance left to use, and #080b0a measured 1.06:1
+     against it. So in dark mode the band is raised rather than sunk, and the
+     section directly above it stays on the page background so the two never
+     blur into one block. Every pair here is contrast-checked in
+     styles.test.ts, including the band against its own background. */
+  --band: #111615;
+  --band-fg: #f2f4f3;
+  --band-muted: #aab4b2;
+  --band-accent: #6fd4c8;
+  --band-border: #2b3432;
+
   --radius: 0.625rem;
 }
 
@@ -50,6 +72,21 @@
     --urgent-soft: #351917;
 
     --focus: #5ec8bc;
+
+    /* A fixed dark band, identical in both themes.
+
+       Used for the one narrative section and the pull-quote. It is the same
+       near-black the signal clips are filmed against, so those sections read as
+       continuous with the footage rather than as a decorative stripe — and
+       because it does not flip with the theme, an 11pm emergency room looks like
+       11pm whichever mode you are in. Its pairs are contrast-checked in
+       styles.test.ts like every other pair. */
+    --band: #252e2c;
+    --band-fg: #f2f4f3;
+    --band-muted: #aab4b2;
+    --band-accent: #6fd4c8;
+    --band-border: #414d4a;
+
   }
 }
 
@@ -67,6 +104,11 @@
   --urgent-fg: #3d0b07;
   --urgent-soft: #351917;
   --focus: #5ec8bc;
+  --band: #252e2c;
+  --band-fg: #f2f4f3;
+  --band-muted: #aab4b2;
+  --band-accent: #6fd4c8;
+  --band-border: #414d4a;
 }
 
 /* ---------------------------------------------------------------------------
@@ -81,7 +123,8 @@
    visible "unfinished" signal when it drifts.
 
      page title     text-2xl font-semibold tracking-tight   every route's <h1>
-     hero title     text-3xl sm:text-4xl font-semibold      landing page only
+     display        text-4xl sm:text-5xl lg:text-6xl        the landing hero only
+     section title  text-2xl sm:text-3xl font-semibold      landing page sections
      card title     text-base font-medium                   panel and empty-state <h2>
      section label  text-sm font-medium                     group headings above a list
      body           text-sm                                 default UI text
@@ -111,6 +154,10 @@
   --text-3xl--line-height: 2.25rem;
   --text-4xl: 2.375rem;
   --text-4xl--line-height: 2.75rem;
+  --text-5xl: 3rem;
+  --text-5xl--line-height: 3.25rem;
+  --text-6xl: 3.75rem;
+  --text-6xl--line-height: 3.9rem;
 
   --color-bg: var(--bg);
   --color-surface: var(--surface);
@@ -124,6 +171,11 @@
   --color-urgent: var(--urgent);
   --color-urgent-fg: var(--urgent-fg);
   --color-urgent-soft: var(--urgent-soft);
+  --color-band: var(--band);
+  --color-band-fg: var(--band-fg);
+  --color-band-muted: var(--band-muted);
+  --color-band-accent: var(--band-accent);
+  --color-band-border: var(--band-border);
 
   --radius-DEFAULT: var(--radius);
 
