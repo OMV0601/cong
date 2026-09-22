@@ -2,15 +2,67 @@
 
 Everything needed to submit Lexicon, in the order you'll need it.
 
-> **Verify the rules yourself before you finalise anything.**
-> The requirements below are transcribed from this repo's own notes, not from
-> the contest site — the machine that wrote this file had no outbound web
-> access and could not open
-> [congressionalappchallenge.us](https://www.congressionalappchallenge.us).
-> Check the current length limit, the required spoken elements, the eligibility
-> rules and **the actual deadline** before you record. They change year to year.
+**Verified against the 2026 rules on 22 Sept 2026:**
 
-Anywhere you see `[SQUARE BRACKETS]`, fill it in.
+| | |
+|---|---|
+| **Deadline** | **26 October 2026, 12:00 PM ET** |
+| **Video length** | **1–3 minutes.** Submissions outside that may be penalised at the judges' discretion |
+| **Eligibility** | Middle or high school student at time of submission, US resident |
+| **Teams** | Up to 4. At least half must be eligible in the district you enter |
+| **AI usage** | Permitted **but must be fully disclosed** — see §0 below, this one is easy to get wrong |
+
+Re-check [the rules page](https://www.congressionalappchallenge.us/students/rules/)
+close to the date anyway. Anywhere you see `[SQUARE BRACKETS]`, fill it in.
+
+---
+
+## 0. AI disclosure — read this first
+
+The 2026 rules say, verbatim:
+
+> "The use of AI tools in app development for the Congressional App Challenge
+> is permitted, provided that **all AI usage is fully disclosed in the
+> submission materials**. AI may only be used to support specific aspects of
+> the project and **must not constitute the entirety of the technical
+> development**. Participants are expected to demonstrate **significant
+> individual contributions and technical understanding** of their app."
+
+Lexicon was built with heavy use of Claude Code. That is allowed. Three things
+follow from it, and none are optional:
+
+**1. Disclose it, specifically.** Not "we used AI for some parts." Name the
+tool, and say honestly which parts it wrote and which parts you did. A vague
+disclosure reads worse than a precise one. Put it in the write-up and say a
+version of it in the video.
+
+**2. Be able to explain the app.** "Technical understanding" is an explicit
+requirement and a judge may test it. Before you submit, make sure you can
+answer, without notes:
+
+- Why does the stranger get signed in anonymously instead of just using the
+  token directly? *(Storage and Realtime policies can't read a token out of a
+  URL — they need a real `auth.uid()` to check a row against.)*
+- What stops someone with a share link from reading another person's signals?
+  *(RLS: the `anon` role can `SELECT` nothing; every stranger read goes through
+  a `security definer` function that checks `grant_sessions`.)*
+- Why is there no automatic matching? *(See §3 and the README. This is a
+  design decision you made, and it's the strongest answer you have.)*
+- Walk through what happens between "Send" and the answer appearing.
+
+If any of those is shaky, read the code until it isn't. `npm run test:rls`
+demonstrates the second one running live, which is a good thing to be able to
+show.
+
+**3. Your own contributions are real — say what they were.** The product
+decisions were not the AI's: choosing this problem over four others, the
+four-layer structure, rejecting automatic matching, the side-by-side
+confirmation, moving the forcing function to the school handoff. Write those
+down as yours, because they are, and they are the part that actually matters.
+
+> Be accurate here rather than modest or generous. An honest, specific
+> disclosure is a credibility signal. An inaccurate one — in either direction —
+> is the kind of thing that unravels under a single question.
 
 ---
 
@@ -19,7 +71,7 @@ Anywhere you see `[SQUARE BRACKETS]`, fill it in.
 Get these done first. Filming around a half-built demo is how a two-minute
 video takes six hours.
 
-- [ ] Run all four migrations that aren't applied yet (`0008`, `0009`, `0010`)
+- [ ] Run the three migrations that aren't applied yet (`0008`, `0009`, `0010`)
 - [ ] Deploy the Edge Function and set its secrets — see README → Push notifications
 - [ ] `npm run seed:demo`, then put the printed code in `VITE_DEMO_CODE` and redeploy
 - [ ] `npm run test:rls` passes against the live project
@@ -36,7 +88,7 @@ honesty section below for what you have to say about them.
 
 ## 2. The video
 
-**Target 2:30. Hard ceiling 3:00** (verify). Going over is an easy way to lose
+**Target 2:30. Hard ceiling 3:00** — confirmed. Going over is an easy way to lose
 points for no reason.
 
 ### What the rules require you to say
@@ -287,6 +339,25 @@ That's the part we'd most want someone to check, so `npm run test:rls` proves
 it: 40-odd assertions run against the real database holding nothing but the
 public key that ships inside the JavaScript bundle.
 
+**AI disclosure.** We built Lexicon with heavy use of Claude Code, an AI coding
+assistant. It wrote most of the implementation — the React components, the SQL
+migrations and policies, the edge function and the test suites — working from
+our direction.
+
+What was ours: choosing this problem, and the shape of the answer. That a
+stranger who cannot describe what they are seeing needs to *point* rather than
+type. That the app must never decide what a signal means, even though that
+would have been the flashier build. That the honest version of validation is
+two clips side by side judged by a person. That an answered question should
+become a permanent entry, because that is the thing a phone call cannot do.
+We rejected an automatic-matching feature on purpose, and the reasoning is
+written down in the repository.
+
+`[FILL IN: anything either of you wrote or debugged directly, and the parts
+you had to push back on.]`
+
+We understand the system we shipped and can walk through any part of it.
+
 ### What we learned
 
 Storage policies and table policies are separate systems in Postgres — securing
@@ -355,6 +426,8 @@ web-push  pwa  row-level-security  vite
 - [ ] Rules, required elements and deadline verified on the contest site **today**
 - [ ] Video under the limit, with every required element spoken
 - [ ] Stand-in clips disclosed on screen if they're not real
+- [ ] **AI usage disclosed specifically in the write-up** — required by the 2026 rules (§0)
+- [ ] Both of you can answer the four questions in §0 without notes
 - [ ] Deployed site loads from a cold phone on mobile data
 - [ ] Demo code in `VITE_DEMO_CODE` is live and not about to expire
 - [ ] `npm test && npm run lint && npm run build` clean
